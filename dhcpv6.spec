@@ -5,8 +5,8 @@ Version:	0.10
 Release:	1
 License:	GPL
 Group:		Networking/Daemons
-Source0:	http://dl.sourceforge.net/dhcp/dhcp-%{version}.tgz
-Source1:	rfc3315.txt
+Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
+# Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
 Patch0:		%{name}-0.10-initscripts.patch
 Patch1:		%{name}-0.10-change_resolv_conf.patch
 URL:		http://dhcpv6.sourceforge.net/
@@ -43,7 +43,6 @@ dokumentacji w /usr/share/doc/dhcpv6* .
 	--prefix= \
 	--mandir=%{_mandir}
 %{__make}
-cp -fp %{SOURCE1} docs
 
 %install
 rm -rf $RPM_BUILD_ROOT
