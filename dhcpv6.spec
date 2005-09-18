@@ -110,7 +110,7 @@ fi
 %files -n dhcpv6_client
 %defattr(644,root,root,755)
 %doc ReadMe dhcp6c.conf
-%attr(750,root,root) /sbin/dhcp6c
+%attr(750,root,root) %{_sbindir}/dhcp6c
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6c
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6c
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
