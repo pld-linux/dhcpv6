@@ -2,18 +2,21 @@ Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
-Release:	1
+Release:	0.1
 License:	GPL
 Group:		Networking/Daemons
 Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
 # Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
-Patch0:		%{name}-0.10-initscripts.patch
-Patch1:		%{name}-0.10-change_resolv_conf.patch
+#Patch0:		%{name}-0.10-initscripts.patch
+#Patch1:		%{name}-0.10-change_resolv_conf.patch
+Patch0:		%{name}-DESTDIR.patch
 URL:		http://dhcpv6.sourceforge.net/
-Requires(post,preun):	/sbin/chkconfig
 BuildRequires:	bison
 BuildRequires:	flex
+Requires(post,preun):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_sbindir	/sbin
 
 %description
 Implements the Dynamic Host Configuration Protocol (DHCP) for Internet
@@ -33,29 +36,11 @@ obs³ugi dynamicznej konfiguracji adresów i parametrów sieci IPv6.
 Wiêcej znajduje siê w manualach dhcp6s(8), dhcp6s.conf(5) oraz
 dokumentacji w /usr/share/doc/dhcpv6* .
 
-%prep
-%setup -q -n dhcp-%{version}
-%patch0 -p1
-%patch1 -p1
-
-%build
-%configure \
-	--prefix= \
-	--mandir=%{_mandir}
-%{__make}
-
-%install
-rm -rf $RPM_BUILD_ROOT
-
-%{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
-
 %package -n dhcpv6_client
-Summary:	DHCPv6 client
-Summary(pl):	Klient DHCPv6
-Group:		Applications/Networking
-Requires:	initscripts >= 7.73
+Summary:        DHCPv6 client
+Summary(pl):    Klient DHCPv6
+Group:          Applications/Networking
+Requires:       initscripts >= 7.73
 
 %description -n dhcpv6_client
 Provides the client for the DHCPv6 protocol (RFC 3315) to support
@@ -68,6 +53,30 @@ Ten pakiet dostarcza klienta protoko³u DHCPv6 (RFC 3315) do obs³ugi
 dynamicznej konfiguracji adresów i parametrów sieci iPv6. Wiêcej
 znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 /usr/share/doc/dhcpv6_client*
+
+%prep
+%setup -q -n dhcp-%{version}
+%patch0 -p1
+#%patch1 -p1
+
+%build
+%configure \
+	--prefix= \
+	--mandir=%{_mandir}
+
+%{__make}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT{%{_sbindir},/etc/sysconfig,%{_localstatedir}/lib/dhcpv6}
+
+%{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
+
+install dhcp6s.sysconfig	$RPM_BUILD_ROOT/etc/sysconfig/dhcp6s
+
+%clean
+rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add dhcp6s
@@ -83,15 +92,12 @@ if [ "$1" -ge "1" ]; then
 	/etc/rc.d/init.d/dhcp6s condrestart >/dev/null 2>&1
 fi
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
 %defattr(644,root,root,755)
 %doc ReadMe docs/* dhcp6s.conf
 %attr(754,root,root) %{_sbindir}/dhcp6s
-%attr(755,root,root) %config /etc/rc.d/init.d/dhcp6s
-%config(noreplace) /etc/sysconfig/dhcp6s
+#%attr(754,root,root) /etc/rc.d/init.d/dhcp6s
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6s
 %{_mandir}/man8/dhcp6s.8*
 %{_mandir}/man5/dhcp6s.conf.5*
 %attr(754,root,root) %dir %{_localstatedir}/lib/dhcpv6
