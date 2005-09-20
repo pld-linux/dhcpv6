@@ -2,12 +2,13 @@ Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
-Release:	0.5
+Release:	0.6
 License:	GPL
 Group:		Networking/Daemons
 Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
 # Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
 Source1:	dhcp6s.init
+Source2:	dhcp6c.init
 Patch0:		%{name}-initscripts.patch
 Patch1:		%{name}-DESTDIR.patch
 Patch2:		%{name}-Makefile.patch
@@ -75,6 +76,7 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
 
 install	dhcp6relay.8	$RPM_BUILD_ROOT%{_mandir}/man8
 install %{SOURCE1}	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6s
+install %{SOURCE2}	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6c
 
 %clean
 rm -rf $RPM_BUILD_ROOT
