@@ -2,21 +2,19 @@ Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
-Release:	0.2
+Release:	0.5
 License:	GPL
 Group:		Networking/Daemons
 Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
 # Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
 Patch0:		%{name}-initscripts.patch
-#Patch1:		%{name}-0.10-change_resolv_conf.patch
 Patch1:		%{name}-DESTDIR.patch
+Patch2:		%{name}-Makefile.patch
 URL:		http://dhcpv6.sourceforge.net/
 BuildRequires:	bison
 BuildRequires:	flex
 Requires(post,preun):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-%define		_sbindir	/sbin
 
 %description
 Implements the Dynamic Host Configuration Protocol (DHCP) for Internet
@@ -58,6 +56,7 @@ znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 %setup -q -n dhcp-%{version}
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 %configure \
@@ -68,16 +67,10 @@ znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sysconfdir},%{_sbindir},/etc/sysconfig,%{_localstatedir}/lib/dhcpv6,/etc/rc.d/init.d}
+install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
-
-install dhcp6s.sysconfig	$RPM_BUILD_ROOT/etc/sysconfig/dhcp6s
-install dhcp6c.sysconfig	$RPM_BUILD_ROOT/etc/sysconfig/dhcp6c
-install server6_addr.conf dhcp6s.conf dhcp6c.conf		$RPM_BUILD_ROOT%{_sysconfdir}
-install dhcp6s.sh	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6s
-install dhcp6c.sh	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6c
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -99,10 +92,11 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc ReadMe docs/* dhcp6s.conf
-%attr(754,root,root) %{_sbindir}/dhcp6s
+%attr(755,root,root) %{_sbindir}/dhcp6s
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6s
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6s
-%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/*.conf
+%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6s.conf
+%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/server6_addr.conf
 %{_mandir}/man8/dhcp6s.8*
 %{_mandir}/man5/dhcp6s.conf.5*
 %attr(754,root,root) %dir %{_localstatedir}/lib/dhcpv6
@@ -110,7 +104,7 @@ fi
 %files -n dhcpv6_client
 %defattr(644,root,root,755)
 %doc ReadMe dhcp6c.conf
-%attr(750,root,root) %{_sbindir}/dhcp6c
+%attr(755,root,root) %{_sbindir}/dhcp6c
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6c
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6c
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
