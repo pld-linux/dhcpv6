@@ -99,10 +99,11 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6s
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6s.conf
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/server6_addr.conf
+%attr(750,root,root) %dir %{_localstatedir}/lib/dhcpv6
 %{_mandir}/man8/dhcp6s.8*
 %{_mandir}/man8/dhcp6relay.8*
 %{_mandir}/man5/dhcp6s.conf.5*
-%attr(754,root,root) %dir %{_localstatedir}/lib/dhcpv6
+
 
 %files -n dhcpv6_client
 %defattr(644,root,root,755)
@@ -113,4 +114,3 @@ fi
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
 %{_mandir}/man8/dhcp6c.8*
 %{_mandir}/man5/dhcp6c.conf.5*
-%attr(750,root,root) %dir %{_localstatedir}/lib/dhcpv6
