@@ -1,0 +1,40 @@
+--- dhcp-0.10/Makefile.in.orig	2005-09-20 10:20:14.000000000 +0200
++++ dhcp-0.10/Makefile.in	2005-09-20 10:22:25.000000000 +0200
+@@ -11,6 +11,7 @@
+ YACC=	@YACC@
+ LEX=	@LEX@
+ TARGET=	dhcp6c dhcp6s
++CONFIGFILES= dhcp6c.conf dhcp6s.conf server6_addr.conf
+ DESTDIR=
+ 
+ INSTALL=@INSTALL@
+@@ -97,13 +98,14 @@
+ 	$(INSTALL_DATA) dhcp6s.8 $(DESTDIR)$(mandir)/man8/
+ 	$(INSTALL_DATA) dhcp6c.conf.5 $(DESTDIR)$(mandir)/man5/
+ 	$(INSTALL_DATA) dhcp6s.conf.5 $(DESTDIR)$(mandir)/man5/
+-
+-rh_install:: install
+-	$(INSTALL) -d $(initdir)
+-	$(INSTALL_PROGRAM) dhcp6s.sh $(initdir)/dhcp6s
+-	$(INSTALL_PROGRAM) dhcp6c.sh $(initdir)/dhcp6c
+-	$(CHKCONFIG) --add dhcp6s
+-	$(CHKCONFIG) --add dhcp6c
++	$(INSTALL) -d $(DESTDIR)$(sysconfigdir)
++	$(INSTALL) dhcp6c.sysconfig $(DESTDIR)$(sysconfigdir)/dhcp6c
++	$(INSTALL) dhcp6s.sysconfig $(DESTDIR)$(sysconfigdir)/dhcp6s
++	$(INSTALL) -d $(DESTDIR)$(etc)
++	$(INSTALL_PROGRAM) $(CONFIGFILES) $(DESTDIR)$(etc)
++	$(INSTALL) -d $(DESTDIR)$(initdir)
++	$(INSTALL_PROGRAM) dhcp6s.sh $(DESTDIR)$(initdir)/dhcp6s
++	$(INSTALL_PROGRAM) dhcp6c.sh $(DESTDIR)$(initdir)/dhcp6c
+ 
+ uninstall::
+ 	for progs in $(TARGET); do \
+@@ -114,7 +116,6 @@
+ 	/bin/rm -f $(mandir)/man5/dhcp6c.conf.5
+ 	/bin/rm -f $(mandir)/man5/dhcp6s.conf.5
+ 
+-rh_uninstall:: uninstall
+ 	$(CHKCONFIG) --del dhcp6s
+ 	$(CHKCONFIG) --del dhcp6c
+ 	/bin/rm -f $(initdir)/dhcp6s
