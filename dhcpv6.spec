@@ -72,6 +72,8 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+install	dhcp6relay.8	$RPM_BUILD_ROOT%{_mandir}/man8
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -91,13 +93,14 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc ReadMe docs/* dhcp6s.conf
+%doc ReadMe docs/* 
 %attr(755,root,root) %{_sbindir}/dhcp6s
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6s
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6s
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6s.conf
 %attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/server6_addr.conf
 %{_mandir}/man8/dhcp6s.8*
+%{_mandir}/man8/dhcp6relay.8*
 %{_mandir}/man5/dhcp6s.conf.5*
 %attr(754,root,root) %dir %{_localstatedir}/lib/dhcpv6
 
