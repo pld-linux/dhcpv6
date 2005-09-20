@@ -69,7 +69,7 @@ znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
+install -d $RPM_BUILD_ROOT{%{_localstatedir}/lib/dhcpv6,/etc/rc.d/init.d}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
