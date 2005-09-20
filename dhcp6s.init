@@ -37,7 +37,7 @@ case "$1" in
        # Check if the service is already running?
         if [ ! -f /var/lock/subsys/dhcp6s ]; then
                msg_starting "DHCP6S"
-              daemon dhcp6s $DHCP6IF
+              daemon dhcp6s $DHCP6SIF
               RETVAL=$?
              [ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp6s
        else
