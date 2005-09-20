@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# dhcp6s        dhcp6s is an implementation of DHCPv6 server.
+#               This shell script takes care of starting and stopping
+#               dhcp6s.
+#
+# chkconfig: - 66 36
+# description: dhcp6s supports server side of  Dynamic Host Configuration
+#              Protocol for IPv6.
+# processname: dhcp6s
+# config: /etc/dhcp6s.conf
+# config: /etc/server6_addr.conf
+# config: /etc/sysconfig/dhcp6s
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config
+[ -f /etc/sysconfig/dhcp6s ] && . /etc/sysconfig/dhcp6s
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+        if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+                msg_network_down DHCP6S
+          exit 1
+        fi
+	else
+        exit 0
+fi
+
+RETVAL=0
+
+case "$1" in
+	  start)
+       # Check if the service is already running?
+        if [ ! -f /var/lock/subsys/dhcp6s ]; then
+               msg_starting "DHCP6S"
+              daemon dhcp6s $DHCP6IF
+              RETVAL=$?
+             [ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp6s
+       else
+             msg_already_running DHCP6S
+       fi
+       ;;
+  stop)
+        if [ -f /var/lock/subsys/dhcp6s ]; then
+	        msg_stopping "DHCP6S Server"
+        	killproc dhcp6s
+	        rm -f /var/run/dhcp6s.pid /var/lock/subsys/dhcp6s >/dev/null 2>&1
+        else
+   	        msg_not_running DHCP6S
+        fi
+        ;;
+   restart|reload)
+	 $0 stop
+         $0 start
+         exit $?
+         ;;
+  status)
+        status dhcp6s
+        exit $?
+        ;;
+  *)
+        msg_usage "$0 {start|stop|restart|force-reload|status}"
+        exit 3
+esac
+      
+exit $RETVAL
