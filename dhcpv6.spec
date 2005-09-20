@@ -7,6 +7,7 @@ License:	GPL
 Group:		Networking/Daemons
 Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
 # Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
+Source1:	dhcp6s.init
 Patch0:		%{name}-initscripts.patch
 Patch1:		%{name}-DESTDIR.patch
 Patch2:		%{name}-Makefile.patch
@@ -73,6 +74,7 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/dhcpv6
 	DESTDIR=$RPM_BUILD_ROOT
 
 install	dhcp6relay.8	$RPM_BUILD_ROOT%{_mandir}/man8
+install %{SOURCE1}	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6s
 
 %clean
 rm -rf $RPM_BUILD_ROOT
