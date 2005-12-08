@@ -66,5 +66,5 @@ case "$1" in
         msg_usage "$0 {start|stop|restart|force-reload|status}"
         exit 3
 esac
-      
+
 exit $RETVAL
