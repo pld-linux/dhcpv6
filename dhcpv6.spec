@@ -41,10 +41,10 @@ Wiêcej znajduje siê w manualach dhcp6s(8), dhcp6s.conf(5) oraz
 dokumentacji w /usr/share/doc/dhcpv6* .
 
 %package -n dhcpv6_client
-Summary:        DHCPv6 client
-Summary(pl):    Klient DHCPv6
-Group:          Applications/Networking
-Requires:       initscripts >= 7.73
+Summary:	DHCPv6 client
+Summary(pl):	Klient DHCPv6
+Group:		Applications/Networking
+Requires:	initscripts >= 7.73
 
 %description -n dhcpv6_client
 Provides the client for the DHCPv6 protocol (RFC 3315) to support
