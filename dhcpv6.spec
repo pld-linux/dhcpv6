@@ -101,12 +101,12 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc ReadMe docs/* 
+%doc ReadMe docs/*
 %attr(755,root,root) %{_sbindir}/dhcp6s
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6s
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6s
-%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6s.conf
-%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/server6_addr.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6s.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/server6_addr.conf
 %attr(750,root,root) %dir %{_localstatedir}/lib/dhcpv6
 %{_mandir}/man8/dhcp6s.8*
 %{_mandir}/man8/dhcp6relay.8*
@@ -119,6 +119,6 @@ fi
 %attr(755,root,root) %{_sbindir}/dhcp6c
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/dhcp6c
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6c
-%attr(644,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
 %{_mandir}/man8/dhcp6c.8*
 %{_mandir}/man5/dhcp6c.conf.5*
