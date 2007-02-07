@@ -1,11 +1,10 @@
 # TODO:
-# - new .sysconfig files
 # - test it
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
-Release:	0.6
+Release:	0.7
 Epoch:		1
 License:	GPL
 Group:		Networking/Daemons
@@ -13,9 +12,8 @@ Source0:	http://dl.sourceforge.net/dhcpv6/dhcp-%{version}.tgz
 # Source0-md5:	72b802d6c89e15e5cf6b0aecf46613f2
 Source1:	dhcp6s.init
 Source2:	dhcp6c.init
-Patch0:		%{name}-initscripts.patch
-Patch1:		%{name}-DESTDIR.patch
-Patch2:		%{name}-Makefile.patch
+Patch0:		%{name}-DESTDIR.patch
+Patch1:		%{name}-Makefile.patch
 URL:		http://dhcpv6.sourceforge.net/
 BuildRequires:	bison
 BuildRequires:	flex
@@ -40,19 +38,19 @@ obs³ugi dynamicznej konfiguracji adresów i parametrów sieci IPv6.
 Wiêcej znajduje siê w manualach dhcp6s(8), dhcp6s.conf(5) oraz
 dokumentacji w /usr/share/doc/dhcpv6* .
 
-%package -n dhcpv6_client
+%package -n dhcpv6-client
 Summary:	DHCPv6 client
 Summary(pl):	Klient DHCPv6
 Group:		Applications/Networking
 Requires:	initscripts >= 7.73
 
-%description -n dhcpv6_client
+%description -n dhcpv6-client
 Provides the client for the DHCPv6 protocol (RFC 3315) to support
 dynamic configuration of IPv6 addresses and parameters. See man
 dhcp6c(8), dhcp6c.conf(5), and the documentation in
 /usr/share/doc/dhcpv6_client* .
 
-%description -n dhcpv6_client -l pl
+%description -n dhcpv6-client -l pl
 Ten pakiet dostarcza klienta protoko³u DHCPv6 (RFC 3315) do obs³ugi
 dynamicznej konfiguracji adresów i parametrów sieci iPv6. Wiêcej
 znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
@@ -62,13 +60,9 @@ znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 %setup -q -n dhcp-%{version}
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 
 %build
-%configure \
-	--prefix= \
-	--mandir=%{_mandir}
-
+%configure 
 %{__make}
 
 %install
@@ -92,11 +86,11 @@ rm -rf $RPM_BUILD_ROOT
 if [ "$1" = "0" ]; then
 	/etc/rc.d/init.d/dhcp6s stop >/dev/null 2>&1
 	/sbin/chkconfig --del dhcp6s
-fi
+:i
 
 %postun
 if [ "$1" -ge "1" ]; then
-	/etc/rc.d/init.d/dhcp6s condrestart >/dev/null 2>&1
+	/etc/rc.d/init.d/dhcp6s restart >/dev/null 2>&1
 fi
 
 %files
@@ -113,7 +107,7 @@ fi
 %{_mandir}/man5/dhcp6s.conf.5*
 
 
-%files -n dhcpv6_client
+%files -n dhcpv6-client
 %defattr(644,root,root,755)
 %doc ReadMe dhcp6c.conf
 %attr(755,root,root) %{_sbindir}/dhcp6c
