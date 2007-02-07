@@ -1,5 +1,8 @@
 # TODO:
 # - test it
+# - pld has rc-scripts not initscripts
+# - obsoletes when renaming a package
+# - use %service
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
