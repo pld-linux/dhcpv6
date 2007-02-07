@@ -86,7 +86,7 @@ rm -rf $RPM_BUILD_ROOT
 if [ "$1" = "0" ]; then
 	/etc/rc.d/init.d/dhcp6s stop >/dev/null 2>&1
 	/sbin/chkconfig --del dhcp6s
-:i
+fi
 
 %postun
 if [ "$1" -ge "1" ]; then
