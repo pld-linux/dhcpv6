@@ -4,7 +4,7 @@
 # - obsoletes when renaming a package
 # - use %service
 Summary:	DHCPv6 - DHCP server and client for IPv6
-Summary(pl.UTF-8):   DHCPv6 - serwer i klient DHCP dla IPv6
+Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
 Release:	0.7
@@ -43,7 +43,7 @@ dokumentacji w /usr/share/doc/dhcpv6* .
 
 %package -n dhcpv6-client
 Summary:	DHCPv6 client
-Summary(pl.UTF-8):   Klient DHCPv6
+Summary(pl.UTF-8):	Klient DHCPv6
 Group:		Applications/Networking
 Requires:	initscripts >= 7.73
 
