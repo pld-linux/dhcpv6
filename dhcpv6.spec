@@ -4,7 +4,7 @@
 # - obsoletes when renaming a package
 # - use %service
 Summary:	DHCPv6 - DHCP server and client for IPv6
-Summary(pl):	DHCPv6 - serwer i klient DHCP dla IPv6
+Summary(pl.UTF-8):   DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	0.10
 Release:	0.7
@@ -32,18 +32,18 @@ dynamic configuration of IPv6 addresses and parameters on your IPv6
 network. See man dhcp6s(8), dhcp6s.conf(5), and the documentation in
 /usr/share/doc/dhcpv6* .
 
-%description -l pl
-Ten pakiet jest implementacj± protoko³u Dynamic Host Configuration
+%description -l pl.UTF-8
+Ten pakiet jest implementacjÄ… protokoÅ‚u Dynamic Host Configuration
 Protocol (DHCP) dla sieci IPv6 zgodnie z RFC 3315: Dynamic Host
 Configuration Protocol for IPv6 (DHCPv6). Zawiera demona serwera DHCP
-- dhcp6s(8). Nale¿y zainstalowaæ ten pakiet, je¶li potrzebujemy
-obs³ugi dynamicznej konfiguracji adresów i parametrów sieci IPv6.
-Wiêcej znajduje siê w manualach dhcp6s(8), dhcp6s.conf(5) oraz
+- dhcp6s(8). NaleÅ¼y zainstalowaÄ‡ ten pakiet, jeÅ›li potrzebujemy
+obsÅ‚ugi dynamicznej konfiguracji adresÃ³w i parametrÃ³w sieci IPv6.
+WiÄ™cej znajduje siÄ™ w manualach dhcp6s(8), dhcp6s.conf(5) oraz
 dokumentacji w /usr/share/doc/dhcpv6* .
 
 %package -n dhcpv6-client
 Summary:	DHCPv6 client
-Summary(pl):	Klient DHCPv6
+Summary(pl.UTF-8):   Klient DHCPv6
 Group:		Applications/Networking
 Requires:	initscripts >= 7.73
 
@@ -53,10 +53,10 @@ dynamic configuration of IPv6 addresses and parameters. See man
 dhcp6c(8), dhcp6c.conf(5), and the documentation in
 /usr/share/doc/dhcpv6_client* .
 
-%description -n dhcpv6-client -l pl
-Ten pakiet dostarcza klienta protoko³u DHCPv6 (RFC 3315) do obs³ugi
-dynamicznej konfiguracji adresów i parametrów sieci iPv6. Wiêcej
-znajduje siê w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
+%description -n dhcpv6-client -l pl.UTF-8
+Ten pakiet dostarcza klienta protokoÅ‚u DHCPv6 (RFC 3315) do obsÅ‚ugi
+dynamicznej konfiguracji adresÃ³w i parametrÃ³w sieci iPv6. WiÄ™cej
+znajduje siÄ™ w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 /usr/share/doc/dhcpv6_client*
 
 %prep
