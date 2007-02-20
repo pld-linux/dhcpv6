@@ -1,0 +1,2844 @@
+--- dhcp-0.10/Makefile.in.rh	2004-03-04 18:31:24.000000000 -0500
++++ dhcp-0.10/Makefile.in	2007-02-09 01:28:31.000000000 -0500
+@@ -2,34 +2,9 @@
+ # $Id$
+ #
+ 
+-srcdir=	@srcdir@
+-CFLAGS=	@CFLAGS@ @DEFS@
+-LDFLAGS=@LDFLAGS@
+-LIBOBJS=@LIBOBJS@
+-LIBS=	@LIBS@
+-CC=	@CC@
+-YACC=	@YACC@
+-LEX=	@LEX@
+-TARGET=	dhcp6c dhcp6s
+-DESTDIR=
+-
+-INSTALL=@INSTALL@
+-INSTALL_PROGRAM=@INSTALL_PROGRAM@
+-INSTALL_DATA=@INSTALL_DATA@
+-prefix=	@prefix@
+-exec_prefix=	@exec_prefix@
+-bindir=	@bindir@
+-sbindir=@sbindir@
+-mandir=	@mandir@
+-initdir=/etc/rc.d/init.d
+-etc=/etc
+-sysconfigdir=/etc/sysconfig
+-CHKCONFIG=/sbin/chkconfig
+-
+-CFLAGS+= -DCONF_DH6OPT_DNS_RESOLVERS=@dhcpopt_dns_resolvers@ \
+-	-DCONF_DH6OPT_DOMAIN_LIST=@dhcpopt_domain_list@ \
+-	-DCONF_DH6OPT_IA_PD=@dhcpopt_pdel@ \
+-	-DCONF_DH6OPT_IAPREFIX=@dhcpopt_pinfo@ 
++include Makefile.inc
++
++TARGET=	dhcp6c dhcp6s dhcp6r
+ 
+ COMMONGENSRCS=lease_token.c
+ CLIENTGENSRCS=client6_parse.c client6_token.c dad_token.c ra_token.c \
+@@ -41,67 +16,85 @@
+ SERVOBJS=	dhcp6s.o common.o timer.o hash.o lease.o \
+ 		server6_conf.o server6_addr.o \
+ 	$(SERVERGENSRCS:%.c=%.o) $(COMMONGENSRCS:%.c=%.o)
++RELAYOBJS=	dhcp6r.o relay6_database.o relay6_parser.o relay6_socket.o
+ 
+ CLEANFILES=cf.tab.h cp.tab.h sf.tab.h dad_token.c ra_token.c client6_token.c client6_parse.c \
+ 		server6_parse.c server6_token.c lease_token.c resolv_token.c radvd_token.c
+ 
++CLIENTHDRS=common.h config.h cp.tab.h dhcp6.h hash.h lease.h timer.h
++
+ all:	$(TARGET) 
++
+ dhcp6c:	$(CLIENTOBJS) $(LIBOBJS)
+ 	$(CC) $(LDFLAGS) -o dhcp6c $(CLIENTOBJS) $(LIBOBJS) $(LIBS) 
++
+ dhcp6s:	$(SERVOBJS) $(LIBOBJS)
+ 	$(CC) $(LDFLAGS) -o dhcp6s $(SERVOBJS) $(LIBOBJS) $(LIBS) 
+ 
++dhcp6r: $(RELAYOBJS) $(LIBOBJS)
++	$(CC) $(LDFLAGS) -o dhcp6r $(RELAYOBJS)
++
+ dad_token.c: dad_token.l
+ 	$(LEX) -Pifyy dad_token.l
+-	mv lex.ifyy.c $@
++	cp lex.ifyy.c $@
+ 
+ ra_token.c: ra_token.l
+ 	$(LEX) -Prayy ra_token.l
+-	mv lex.rayy.c $@
++	cp lex.rayy.c $@
+ 
+ resolv_token.c: resolv_token.l
+ 	$(LEX) -Prvyy resolv_token.l
+-	mv lex.rvyy.c $@
++	cp lex.rvyy.c $@
+ 
+ radvd_token.c: radvd_token.l
+ 	$(LEX) -Prdyy radvd_token.l
+-	mv lex.rdyy.c $@
++	cp lex.rdyy.c $@
+ 
+ client6_parse.c cp.tab.h: client6_parse.y
+ 	$(YACC) -d -p cpyy client6_parse.y
+-	mv y.tab.h cp.tab.h
+-	mv y.tab.c client6_parse.c
++	cp y.tab.h cp.tab.h
++	cp y.tab.c client6_parse.c
+ 
+ client6_token.c: client6_token.l
+ 	$(LEX) -Pcpyy client6_token.l
+-	mv lex.cpyy.c $@	
++	cp lex.cpyy.c $@	
+ 
+ lease_token.c: lease_token.l
+ 	$(LEX) -Plyy lease_token.l
+-	mv lex.lyy.c $@
++	cp lex.lyy.c $@
+ 
+ server6_parse.c sf.tab.h: server6_parse.y
+ 	$(YACC) -d -p sfyy server6_parse.y
+-	mv y.tab.h sf.tab.h
+-	mv y.tab.c server6_parse.c 
++	cp y.tab.h sf.tab.h
++	cp y.tab.c server6_parse.c 
+ 
+ server6_token.c: server6_token.l sf.tab.h
+ 	$(LEX) -Psfyy server6_token.l
+-	mv lex.sfyy.c $@
++	cp lex.sfyy.c $@
+ 
+ install::
+ 	$(INSTALL) -d $(DESTDIR)$(sbindir)
+-	$(INSTALL_PROGRAM) -s -o bin -g bin $(TARGET) $(DESTDIR)$(sbindir)
++	$(INSTALL) -d $(DESTDIR)/sbin
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s $(DESTDIR)$(sbindir)
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6r $(DESTDIR)$(sbindir)
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6c $(DESTDIR)/sbin
+ 	$(INSTALL) -d $(DESTDIR)$(mandir)/man8 $(DESTDIR)$(mandir)/man5
+-	$(INSTALL_DATA) -o bin -g bin dhcp6c.8 $(DESTDIR)$(mandir)/man8/
+-	$(INSTALL_DATA) -o bin -g bin dhcp6s.8 $(DESTDIR)$(mandir)/man8/
+-	$(INSTALL_DATA) -o bin -g bin dhcp6c.conf.5 $(DESTDIR)$(mandir)/man5/
+-	$(INSTALL_DATA) -o bin -g bin dhcp6s.conf.5 $(DESTDIR)$(mandir)/man5/
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6c.8 $(DESTDIR)$(mandir)/man8/
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s.8 $(DESTDIR)$(mandir)/man8/
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6r.8 $(DESTDIR)$(mandir)/man8/
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6c.conf.5 $(DESTDIR)$(mandir)/man5/
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s.conf.5 $(DESTDIR)$(mandir)/man5/
++	$(INSTALL) -d  $(DESTDIR)$(initdir)
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s.sh $(DESTDIR)$(initdir)/dhcp6s
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6r.sh $(DESTDIR)$(initdir)/dhcp6r
++	$(INSTALL) -d  $(DESTDIR)/etc/sysconfig
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s.sysconfig  $(DESTDIR)/etc/sysconfig/dhcp6s
++	$(INSTALL_DATA) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6r.sysconfig  $(DESTDIR)/etc/sysconfig/dhcp6r
+ 
+ rh_install:: install
+ 	$(INSTALL) -d $(initdir)
+-	$(INSTALL_PROGRAM) -o root -g root dhcp6s.sh $(initdir)/dhcp6s
+-	$(INSTALL_PROGRAM) -o root -g root dhcp6c.sh $(initdir)/dhcp6c
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6s.sh $(initdir)/dhcp6s
++	$(INSTALL_PROGRAM) -o $(INSTALL_USER) -g $(INSTALL_GROUP) dhcp6c.sh $(initdir)/dhcp6c
+ 	$(CHKCONFIG) --add dhcp6s
+ 	$(CHKCONFIG) --add dhcp6c
+ 
+--- dhcp-0.10/ReadMe.rh	2003-05-28 17:18:22.000000000 -0400
++++ dhcp-0.10/ReadMe	2007-02-09 01:28:31.000000000 -0500
+@@ -18,7 +18,8 @@
+ 
+ 	This implementation supports IPv6 address assignment to the clients. 
+ It also has the support for prefix delegation, DNS server updates but those 
+-features are not validated yet. 
++features are not validated yet. The server also supports messages sent through
++relay agents, both inbound and outbound.
+ 
+ 	The Linux implementation is based upon KAME's DHCPv6 implementation 
+ on BSD which lacked the support for dynamic address assignment feature, now 
+@@ -34,7 +35,8 @@
+       3. Client IPv6 address assignment and temporary IPv6 address assignment support 
+ 	 on the same link. 
+       4. Supported Options: Rapid commit, Server Preference, Information Request, Unicast,
+-	 Elapsed Time, ClientID, ServerID , IA_NA , IA_TA , IA_ADDR , IA_PD, Status support. 
++	 Elapsed Time, ClientID, ServerID , IA_NA , IA_TA , IA_ADDR , IA_PD, Status,
++	 Relay Message, Interface Identifier. 
+       5. Solicit/Request/Advertise/Reply/Infomation-request messages/Renew/Rebind
+       	 /Release/Confirm/ messages support for IPv6 address binding. 
+       8. Client configuration file support for IPv6 address assignment. 
+@@ -47,13 +49,13 @@
+ B. Support available but not validated yet 
+ 
+       1. Request option support 
++      2. Relay-Forw/Relay-Repl messages and Relay Message Option
+ 
+ C. ToDo List: 
+ 
+       1. Authentication/User class/Vendor class/Interface-ID option 
+          support 
+-      2. Relay agent support. 
+-      3. Reconfig/Relay messages support. 
++      2. Reconfig message support. 
+ 
+ D. INSTALLATTION:
+ 
+--- dhcp-0.10/client6_addr.c.rh	2003-07-01 22:21:25.000000000 -0400
++++ dhcp-0.10/client6_addr.c	2007-02-09 01:28:31.000000000 -0500
+@@ -47,8 +47,9 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <net/if_arp.h>
++#include <ifaddrs.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -70,7 +71,7 @@
+ extern struct dhcp6_timer *client6_timo __P((void *));
+ extern void client6_send __P((struct dhcp6_event *));
+ extern void free_servers __P((struct dhcp6_if *));
+-extern ssize_t gethwid __P((char *, int, const char *, u_int16_t *));
++extern ssize_t gethwid __P((unsigned char *, int, const char *, u_int16_t *));
+ 
+ extern int nlsock;
+ extern FILE *client6_lease_file;
+@@ -109,7 +110,11 @@
+ 	/* add new address */
+ 	for (lv = TAILQ_FIRST(&optinfo->addr_list); lv; lv = lv_next) {
+ 		lv_next = TAILQ_NEXT(lv, link);
+-		if (lv->val_dhcp6addr.type != IAPD) {	
++
++		if ( (lv->val_dhcp6addr.type != IAPD) 
++		   &&(lv->val_dhcp6addr.plen == 0) 
++		   )
++		{	
+ 			lv->val_dhcp6addr.plen = 
+ 				dhcp6_get_prefixlen(&lv->val_dhcp6addr.addr, dhcp6_if);
+ 			if (lv->val_dhcp6addr.plen == PREFIX_LEN_NOTINRA) {
+@@ -119,6 +124,7 @@
+ 					in6addr2str(&lv->val_dhcp6addr.addr, 0));
+ 			}
+ 		}
++
+ 		if ((cl_lease = dhcp6_find_lease(&client6_iaidaddr, 
+ 						&lv->val_dhcp6addr)) != NULL) {
+ 			dhcp6_update_lease(&lv->val_dhcp6addr, cl_lease);
+@@ -156,7 +162,7 @@
+ 	if (client6_iaidaddr.client6_info.iaidinfo.renewtime == 0)
+ 		return (0);
+ 	if (client6_iaidaddr.client6_info.iaidinfo.renewtime == DHCP6_DURATITION_INFINITE) {
+-		client6_iaidaddr.client6_info.iaidinfo.rebindtime == DHCP6_DURATITION_INFINITE;
++		client6_iaidaddr.client6_info.iaidinfo.rebindtime = DHCP6_DURATITION_INFINITE;
+ 		return (0);
+ 	}
+ 	/* set up start date, and renew timer */
+@@ -214,7 +220,7 @@
+ 	sp->iaidaddr = &client6_iaidaddr;
+ 	time(&sp->start_date);
+ 	sp->state = ACTIVE;
+-	if (write_lease(sp, client6_lease_file) != 0) {
++	if (client6_lease_file && (write_lease(sp, client6_lease_file) != 0)) {
+ 		dprintf(LOG_ERR, "%s" "failed to write a new lease address %s to lease file", 
+ 			FNAME, in6addr2str(&sp->lease_addr.addr, 0));
+ 		if (sp->timer)
+@@ -334,15 +340,21 @@
+ 	/* flag == ADDR_UPDATE */
+ 	for (lv = TAILQ_FIRST(&optinfo->addr_list); lv; lv = lv_next) {
+ 		lv_next = TAILQ_NEXT(lv, link);
+-		if (lv->val_dhcp6addr.type != IAPD) {	
++
++		if ( (lv->val_dhcp6addr.type != IAPD) 
++		   &&(lv->val_dhcp6addr.plen == 0) 
++		   )
++		{	
+ 			lv->val_dhcp6addr.plen = 
+ 				dhcp6_get_prefixlen(&lv->val_dhcp6addr.addr, dhcp6_if);
+ 			if (lv->val_dhcp6addr.plen == PREFIX_LEN_NOTINRA) {
+ 				dprintf(LOG_WARNING, "assigned address %s is not in any RAs"
+ 					" prefix length using 64 bit instead",
+ 					in6addr2str(&lv->val_dhcp6addr.addr, 0)); 
++		
+ 			}
+ 		}
++
+ 		if ((cl = dhcp6_find_lease(&client6_iaidaddr, &lv->val_dhcp6addr)) != NULL) {
+ 		/* update leases */
+ 			dhcp6_update_lease(&lv->val_dhcp6addr, cl);
+@@ -394,7 +406,7 @@
+ 	if (client6_iaidaddr.client6_info.iaidinfo.renewtime == 0)
+ 		return (0);
+ 	if (client6_iaidaddr.client6_info.iaidinfo.renewtime == DHCP6_DURATITION_INFINITE) {
+-		client6_iaidaddr.client6_info.iaidinfo.rebindtime == DHCP6_DURATITION_INFINITE;
++		client6_iaidaddr.client6_info.iaidinfo.rebindtime = DHCP6_DURATITION_INFINITE;
+ 		if (client6_iaidaddr.timer)
+ 			dhcp6_remove_timer(client6_iaidaddr.timer);
+ 		return (0);
+@@ -695,41 +707,41 @@
+ create_iaid(struct iaid_table *iaidtab, int num_device)
+ {
+ 	struct iaid_table *temp = iaidtab;
+-	char buff[1024];
+-	struct ifconf ifc;
+-	struct ifreq *ifr, if_hwaddr;
++	struct ifaddrs *ifa=0L, *ifap=0L;
+ 	int i;
+ 	
+-	ifc.ifc_len = sizeof(buff);
+-	ifc.ifc_buf = buff;
+-	if (ioctl(nlsock, SIOCGIFCONF, &ifc) < 0) {
+-		dprintf(LOG_ERR, "%s" "ioctl SIOCGIFCONF", FNAME);
++	if ( getifaddrs( &ifap ) != 0 )
++	{
++		dprintf(LOG_ERR, "%s" "getifaddrs", FNAME);
+ 		return -1;
+ 	}
+ 
+-	ifr = ifc.ifc_req;
+-	for (i = ifc.ifc_len / sizeof(struct ifreq); --i >= 0 && num_device < MAX_DEVICE; 
+-	     ifr++) {
+-		if (!strcmp(ifr->ifr_name, "lo")) continue;
+-		temp->hwaddr.len = gethwid(temp->hwaddr.data, sizeof(temp->hwaddr.data), ifr->ifr_name, &temp->hwaddr.type);
++	for (i=0, ifa = ifap; 
++	     (ifa != 0L) && ( i < MAX_DEVICE );
++	     i++, ifa = ifa->ifa_next
++	    )
++	{
++		if (!strcmp(ifa->ifa_name, "lo")) continue;
++		temp->hwaddr.len = gethwid(temp->hwaddr.data, sizeof(temp->hwaddr.data), ifa->ifa_name, &temp->hwaddr.type);
+ 		switch (temp->hwaddr.type) {
+ 		case ARPHRD_ETHER:
+ 		case ARPHRD_IEEE802:
+ 			memcpy(&temp->iaid, temp->hwaddr.data, sizeof(temp->iaid));
+ 			break;
+ 		case ARPHRD_PPP:
+-			temp->iaid = do_hash(ifr->ifr_name,sizeof(ifr->ifr_name))
+-				+ if_nametoindex(ifr->ifr_name);
++			temp->iaid = do_hash(ifa->ifa_name,sizeof(ifa->ifa_name))
++				+ if_nametoindex(ifa->ifa_name);
+ 			break;
+ 		default:
+ 			dprintf(LOG_INFO, "doesn't support %s address family %d", 
+-				ifr->ifr_name, temp->hwaddr.type);
++				ifa->ifa_name, temp->hwaddr.type);
+ 			continue;
+ 		}
+ 		dprintf(LOG_DEBUG, "%s"" create iaid %u for interface %s", 
+-			FNAME, temp->iaid, ifr->ifr_name);
++			FNAME, temp->iaid, ifa->ifa_name);
+ 		num_device++;
+ 		temp++;
+ 	}
++	freeifaddrs(ifap);
+ 	return num_device;
+ }
+--- dhcp-0.10/client6_parse.y.rh	2004-02-04 19:13:05.000000000 -0500
++++ dhcp-0.10/client6_parse.y	2007-02-09 01:28:31.000000000 -0500
+@@ -38,7 +38,9 @@
+ 
+ #include <arpa/inet.h>
+ 
+-#include "queue.h"
++#include <malloc.h>
++#include <sys/queue.h>
++
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -92,8 +94,8 @@
+ %token INTERFACE IFNAME IPV6ADDR
+ %token REQUEST SEND 
+ %token RAPID_COMMIT PREFIX_DELEGATION DNS_SERVERS 
+-%token INFO_ONLY TEMP_ADDR
+-%token ADDRESS PREFIX IAID RENEW_TIME REBIND_TIME V_TIME P_TIME
++%token INFO_ONLY TEMP_ADDR USE_RA_PREFIX
++%token ADDRESS PREFIX IAID RENEW_TIME REBIND_TIME V_TIME P_TIME PREFIX_DELEGATION_INTERFACE 
+ %token NUMBER SLASH EOS BCL ECL STRING INFINITY
+ %token COMMA OPTION
+ 
+@@ -234,6 +236,25 @@
+ 		
+ 			$$ = l;
+ 		}
++        |       PREFIX_DELEGATION_INTERFACE STRING EOS
++                {
++			struct cf_list *l;
++			char *pp = (char*)malloc(strlen($2)+1);
++			strcpy(pp,$2);
++			MAKE_CFLIST(l, DECL_PREFIX_DELEGATION_INTERFACE, pp, NULL );
++			
++			$$ = l;
++                }	     
++   
++	|	USE_RA_PREFIX EOS
++		{
++			struct cf_list *l;
++
++			MAKE_CFLIST(l, DECL_USE_RA_PREFIX, NULL, NULL);
++			/* no value */
++			$$ = l;
++		}
++ 
+ 	;
+ 
+ dhcpoption:
+@@ -260,31 +281,36 @@
+ 			MAKE_CFLIST(l, DHCPOPT_DNS, NULL, NULL);
+ 			/* currently no value */
+ 			$$ = l;
+-		}
++		}        
+ 	;
+ 
+ addrdecl:
+-	
++       
+ 		addrparam addrvtime 
+ 		{
+-			(struct dhcp6_addr *)$1->validlifetime = (u_int32_t)$2;
++		    struct dhcp6_addr *addr=(struct dhcp6_addr *)$1;
++		    
++			addr->validlifetime = (u_int32_t)$2;
+ 			$$ = $1;
+ 		}
+ 	|	 addrparam addrptime
+ 		{
+-			(struct dhcp6_addr *)$1->preferlifetime = (u_int32_t)$2;
++		    struct dhcp6_addr *addr=(struct dhcp6_addr *)$1;
++		        addr->preferlifetime = (u_int32_t)$2;
+ 			$$ = $1;
+ 		}
+ 	|	 addrparam addrvtime addrptime 
+ 		{
+-			(struct dhcp6_addr *)$1->validlifetime = (u_int32_t)$2;
+-			(struct dhcp6_addr *)$1->preferlifetime = (u_int32_t)$3;
++		    struct dhcp6_addr *addr=(struct dhcp6_addr *)$1;
++			addr->validlifetime = (u_int32_t)$2;
++			addr->preferlifetime = (u_int32_t)$3;
+ 			$$ = $1;
+ 		}
+ 	| 	addrparam addrptime addrvtime
+ 		{
+-			(struct dhcp6_addr *)$1->validlifetime = (u_int32_t)$3;
+-			(struct dhcp6_addr *)$1->preferlifetime = (u_int32_t)$2;
++		    struct dhcp6_addr *addr=(struct dhcp6_addr *)$1;
++			addr->validlifetime = (u_int32_t)$3;
++			addr->preferlifetime = (u_int32_t)$2;
+ 			$$ = $1;
+ 			}
+ 	| 	addrparam
+--- dhcp-0.10/client6_token.l.rh	2003-04-02 18:31:49.000000000 -0500
++++ dhcp-0.10/client6_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -48,7 +48,8 @@
+ #include <varargs.h>
+ #endif
+ 
+-#include "queue.h"
++#include <sys/queue.h>
++
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -60,6 +61,10 @@
+ static int cpyy_first_time = 1;
+ static int cpyyerrorcount = 0;
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
+  
+ #ifndef NOCONFIG_DEBUG
+ #define YYDEBUG 1
+@@ -143,6 +148,7 @@
+ <S_CNF>prefer-life-time { DECHO; return (P_TIME); }
+ <S_CNF>renew-time { DECHO; return (RENEW_TIME); }
+ <S_CNF>rebind-time { DECHO; return (REBIND_TIME); }
++<S_CNF>prefix-delegation-interface { DECHO; return (PREFIX_DELEGATION_INTERFACE); }
+ 	/* request */
+ <S_CNF>request { DECHO; return (REQUEST); }
+ 
+@@ -157,6 +163,7 @@
+ 	/* generic options */
+ <S_CNF>information-only { DECHO; return (INFO_ONLY); }
+ <S_CNF>temp-address { DECHO; return (TEMP_ADDR); }
++<S_CNF>use-ra-prefix { DECHO; return (USE_RA_PREFIX); }
+ 	/* duration */
+ <S_CNF>infinity { DECHO; return (INFINITY); }
+ 
+--- dhcp-0.10/common.c.rh	2004-02-04 18:30:17.000000000 -0500
++++ dhcp-0.10/common.c	2007-02-09 01:28:31.000000000 -0500
+@@ -64,6 +64,7 @@
+ #include <netdb.h>
+ #include <ifaddrs.h>
+ #include <resolv.h>
++#include <sys/queue.h>
+ 
+ #ifdef HAVE_GETIFADDRS 
+ # ifdef HAVE_IFADDRS_H
+@@ -72,7 +73,6 @@
+ # endif
+ #endif
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -85,8 +85,8 @@
+ struct dns_list dnslist;
+ static struct host_conf *host_conflist;
+ static int in6_matchflags __P((struct sockaddr *, char *, int));
+-ssize_t gethwid __P((char *, int, const char *, u_int16_t *));
+-static int get_assigned_ipv6addrs __P((char *, char *,
++ssize_t gethwid __P((unsigned char *, int, const char *, u_int16_t *));
++static int get_assigned_ipv6addrs __P((unsigned char *, unsigned char *,
+ 					struct dhcp6_optinfo *));
+ struct dhcp6_if *
+ find_ifconfbyname(const char *ifname)
+@@ -215,6 +215,25 @@
+ 	return;
+ }
+ 
++void
++relayfree(head)
++	struct relay_list *head;
++{
++	struct relay_listval *v;
++
++	while ((v = TAILQ_FIRST(head)) != NULL) {
++		TAILQ_REMOVE(head, v, link);
++		if (v->intf_id != NULL) {
++			if (v->intf_id->intf_id != NULL) 
++				free(v->intf_id->intf_id);
++			free (v->intf_id);
++		}
++		free(v);
++	}
++
++	return;
++}
++
+ int
+ dhcp6_count_list(head)
+ 	struct dhcp6_list *head;
+@@ -255,6 +274,8 @@
+ 				return (lv);
+ 			}
+ 			break;
++		default:
++		        break;
+ 		}
+ 	}
+ 
+@@ -539,17 +560,19 @@
+ }
+ 
+ char *
+-addr2str(sa)
++addr2str(sa, salen)
+ 	struct sockaddr *sa;
++	socklen_t salen;
+ {
+-	static char addrbuf[8][NI_MAXHOST];
++	static char addrbuf[8][NI_MAXHOST+1];
+ 	static int round = 0;
+ 	char *cp;
+ 
+ 	round = (round + 1) & 7;
+ 	cp = addrbuf[round];
++	memset(cp, '\0', NI_MAXHOST+1);
+ 
+-	if (getnameinfo(sa, NI_MAXSERV, cp, NI_MAXHOST, NULL, 
++	if (getnameinfo(sa, salen, cp, NI_MAXHOST, NULL, 
+ 				0, NI_NUMERICHOST) != 0)
+ 		dprintf(LOG_ERR, "%s getnameinfo return error", FNAME);
+ 
+@@ -568,7 +591,7 @@
+ 	sa6.sin6_addr = *in6;
+ 	sa6.sin6_scope_id = scopeid;
+ 
+-	return (addr2str((struct sockaddr *)&sa6));
++	return (addr2str((struct sockaddr *)&sa6, sizeof (*in6)));
+ }
+ 
+ /* return IPv6 address scope type. caller assumes that smaller is narrower. */
+@@ -627,7 +650,7 @@
+ 
+ 	if (ioctl(s, SIOCGIFFLAGS, &ifr) < 0) {
+ 		warn("in6_matchflags: ioctl(SIOCGIFFLAGS, %s)",
+-		     addr2str(addr));
++		     addr2str(addr, sizeof (addr->sa_data)));
+ 		close(s);
+ 		return (-1);
+ 	}
+@@ -642,8 +665,8 @@
+ 	       struct duid *duid)
+ {
+ 	const char *cp;
+-	char  *bp, *idbuf = NULL;
+-	int duidlen, slen;
++	unsigned char  *bp, *idbuf = NULL;
++	u_int8_t duidlen, slen;
+ 	unsigned int x;
+ 
+ 	/* calculate DUID len */
+@@ -655,12 +678,8 @@
+ 	if ((slen % 3) != 0)
+ 		goto bad;
+ 	duidlen += (slen / 3);
+-	if (duidlen > 256) {
+-		dprintf(LOG_ERR, "%s" "too long DUID (%d)", FNAME, duidlen);
+-		return (-1);
+-	}
+ 
+-	if ((idbuf = (char *)malloc(duidlen)) == NULL) {
++	if ((idbuf = (unsigned char *)malloc(duidlen)) == NULL) {
+ 		dprintf(LOG_ERR, "%s" "memory allocation failed", FNAME);
+ 		return (-1);
+ 	}
+@@ -697,7 +716,7 @@
+ 	FILE *fp = NULL;
+ 	u_int16_t len = 0, hwtype;
+ 	struct dhcp6_duid_type1 *dp; /* we only support the type1 DUID */
+-	char tmpbuf[256];	/* DUID should be no more than 256 bytes */
++	unsigned char tmpbuf[256];	/* DUID should be no more than 256 bytes */
+ 
+ 	if ((fp = fopen(idfile, "r")) == NULL && errno != ENOENT)
+ 		dprintf(LOG_NOTICE, "%s" "failed to open DUID file: %s",
+@@ -722,7 +741,7 @@
+ 
+ 	memset(duid, 0, sizeof(*duid));
+ 	duid->duid_len = len;
+-	if ((duid->duid_id = (char *)malloc(len)) == NULL) {
++	if ((duid->duid_id = (unsigned char *)malloc(len)) == NULL) {
+ 		dprintf(LOG_ERR, "%s" "failed to allocate memory", FNAME);
+ 		goto fail;
+ 	}
+@@ -787,7 +806,7 @@
+ 
+ ssize_t
+ gethwid(buf, len, ifname, hwtypep)
+-	char *buf;
++	unsigned char *buf;
+ 	int len;
+ 	const char *ifname;
+ 	u_int16_t *hwtypep;
+@@ -796,8 +815,11 @@
+ 	ssize_t l;
+ 	struct ifreq if_hwaddr;
+ 	
+-	if ((skfd = socket(AF_INET6, SOCK_DGRAM, 0 )) < 0)
++	if ((skfd = socket(AF_INET6, SOCK_DGRAM, 0 )) < 0) {
++		close(skfd);
+ 		return -1;
++	}
++	close(skfd);
+ 
+ 	strcpy(if_hwaddr.ifr_name, ifname);
+ 	if (ioctl(skfd, SIOCGIFHWADDR, &if_hwaddr) < 0)
+@@ -819,8 +841,8 @@
+ 		return -1; /* XXX */
+ 	}
+ 	memcpy(buf, if_hwaddr.ifr_hwaddr.sa_data, l);
+-	dprintf(LOG_DEBUG, "%s" "found an interface %s harware %x",
+-		FNAME, ifname, buf);
++	dprintf(LOG_DEBUG, "%s" "found an interface %s harware %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",
++		FNAME, ifname, *buf, *(buf+1), *(buf+2), *(buf+3), *(buf+4), *(buf+5));
+ 	return l;
+ }
+ 
+@@ -837,6 +859,7 @@
+ 	TAILQ_INIT(&optinfo->reqopt_list);
+ 	TAILQ_INIT(&optinfo->stcode_list);
+ 	TAILQ_INIT(&optinfo->dns_list.addrlist);
++	TAILQ_INIT(&optinfo->relay_list);
+ 	optinfo->dns_list.domainlist = NULL;
+ }
+ 
+@@ -852,6 +875,7 @@
+ 	dhcp6_clear_list(&optinfo->reqopt_list);
+ 	dhcp6_clear_list(&optinfo->stcode_list);
+ 	dhcp6_clear_list(&optinfo->dns_list.addrlist);
++	relayfree(&optinfo->relay_list);
+ 	if (dhcp6_mode == DHCP6_MODE_CLIENT) {
+ 		for (dlist = optinfo->dns_list.domainlist; dlist; dlist = dlist_next) {
+ 			dlist_next = dlist->next;
+@@ -898,7 +922,7 @@
+ {
+ 	struct dhcp6opt *np, opth;
+ 	int i, opt, optlen, reqopts, num;
+-	char *cp, *val;
++	unsigned char *cp, *val;
+ 	u_int16_t val16;
+ 
+ 	for (; p + 1 <= ep; p = np) {
+@@ -912,7 +936,7 @@
+ 		optlen = ntohs(opth.dh6opt_len);
+ 		opt = ntohs(opth.dh6opt_type);
+ 
+-		cp = (char *)(p + 1);
++		cp = (unsigned char *)(p + 1);
+ 		np = (struct dhcp6opt *)(cp + optlen);
+ 
+ 		dprintf(LOG_DEBUG, "%s" "get DHCP option %s, len %d",
+@@ -1021,6 +1045,11 @@
+ 				goto malformed;
+ 			optinfo->flags |= DHCIFF_RAPID_COMMIT;
+ 			break;
++		case DH6OPT_REQUEST_PREFIX:
++			if (optlen != 0)
++				goto malformed;
++			optinfo->flags |= DHCIFF_REQUEST_PREFIX;
++			break;
+ 		case DH6OPT_UNICAST:
+ 			if (optlen != sizeof(struct in6_addr)
+ 			    && dhcp6_mode != DHCP6_MODE_CLIENT)
+@@ -1104,7 +1133,7 @@
+ 				else {
+ 					val += n;
+ 					dprintf(LOG_DEBUG, "expand domain name %s, size %d", 
+-						dname->name, strlen(dname->name));
++						dname->name, (int) strlen(dname->name));
+ 				}
+ 				dname->next = NULL;
+ 				if (optinfo->dns_list.domainlist == NULL) {
+@@ -1141,10 +1170,10 @@
+ 
+ static int
+ get_assigned_ipv6addrs(p, ep, optinfo)
+-	char *p, *ep;
++	unsigned char *p, *ep;
+ 	struct dhcp6_optinfo *optinfo;
+ {
+-	char *np, *cp;
++	unsigned char *np, *cp;
+ 	struct dhcp6opt opth;
+ 	struct dhcp6_addr_info ai;
+ 	struct dhcp6_prefix_info pi;
+@@ -1209,6 +1238,12 @@
+ 				    "(%d)", addr6.preferlifetime, addr6.validlifetime);
+ 				goto malformed;
+ 			}
++			if ( optlen & 1 )
++			{ 
++			    addr6.plen = *(p + sizeof(ai));
++			    optlen -= 1;
++			    p++;
++			}
+ 			if (optlen == sizeof(ai) - sizeof(u_int32_t)) {
+ 				addr6.status_code = DH6OPT_STCODE_UNDEFINE;
+ 				break;
+@@ -1337,7 +1372,7 @@
+ 	struct dhcp6opt *p = bp, opth;
+ 	struct dhcp6_listval *stcode;
+ 	int len = 0, optlen = 0;
+-	char *tmpbuf = NULL;
++	unsigned char *tmpbuf = NULL;
+ 
+ 	if (optinfo->clientID.duid_len) {
+ 		COPY_OPTION(DH6OPT_CLIENTID, optinfo->clientID.duid_len,
+@@ -1352,7 +1387,10 @@
+ 		COPY_OPTION(DH6OPT_ELAPSED_TIME, 2, &optinfo->elapsed_time, p);
+ 
+ 	if (optinfo->flags & DHCIFF_RAPID_COMMIT)
+-		COPY_OPTION(DH6OPT_RAPID_COMMIT, 0, NULL, p);
++		COPY_OPTION(DH6OPT_RAPID_COMMIT, 0, "", p);
++
++	if (optinfo->flags & DHCIFF_REQUEST_PREFIX)
++		COPY_OPTION(DH6OPT_REQUEST_PREFIX, 0, "", p);
+ 
+ 	if ((dhcp6_mode == DHCP6_MODE_SERVER) && (optinfo->flags & DHCIFF_UNICAST)) {
+ 		if (!IN6_IS_ADDR_UNSPECIFIED(&optinfo->server_addr)) {
+@@ -1362,7 +1400,7 @@
+ 	}
+ 	switch(optinfo->type) {
+ 	int buflen;
+-	char *tp;
++	unsigned char *tp;
+ 	u_int32_t iaid;
+ 	struct dhcp6_iaid_info opt_iana;
+ 	struct dhcp6_iaid_info opt_iapd;
+@@ -1406,14 +1444,17 @@
+ 		if (!TAILQ_EMPTY(&optinfo->addr_list)) {
+ 			for (dp = TAILQ_FIRST(&optinfo->addr_list); dp; 
+ 			     dp = TAILQ_NEXT(dp, link)) {
+-				int iaddr_len = 0;
++				int iaddr_len = 
++				 (dp->val_dhcp6addr.plen &&
++				 ( optinfo->flags & DHCIFF_RESPOND_PREFIX )
++				  ) ? 1 : 0; 
+ 				memset(&ai, 0, sizeof(ai));
+ 				ai.dh6_ai_type = htons(DH6OPT_IADDR);
+ 				if (dp->val_dhcp6addr.status_code != DH6OPT_STCODE_UNDEFINE) 
+-					iaddr_len = sizeof(ai) - sizeof(u_int32_t) 
++					iaddr_len += sizeof(ai) - sizeof(u_int32_t) 
+ 								+ sizeof(status);
+ 				else 
+-					iaddr_len = sizeof(ai) - sizeof(u_int32_t);
++					iaddr_len += sizeof(ai) - sizeof(u_int32_t);
+ 				ai.dh6_ai_len = htons(iaddr_len);
+ 				ai.preferlifetime = htonl(dp->val_dhcp6addr.preferlifetime);
+ 				ai.validlifetime = htonl(dp->val_dhcp6addr.validlifetime);
+@@ -1421,11 +1462,22 @@
+ 			       		sizeof(ai.addr));
+ 				memcpy(tp, &ai, sizeof(ai));
+ 				tp += sizeof(ai);
++				if(  dp->val_dhcp6addr.plen &&
++				   ( optinfo->flags & DHCIFF_RESPOND_PREFIX )
++				  )
++				{
++				    *tp = dp->val_dhcp6addr.plen;
++				    optlen += 1;				    
++				    ++tp;
++				}
+ 				dprintf(LOG_DEBUG, "set IADDR address option len %d: "
+-			    		"%s preferlifetime %d validlifetime %d", 
++			    		"%s preferlifetime %d validlifetime %d prefix:%d", 
+ 			    		iaddr_len, in6addr2str(&ai.addr, 0), 
+ 			    		ntohl(ai.preferlifetime), 
+-					ntohl(ai.validlifetime));
++					ntohl(ai.validlifetime),
++					( optinfo->flags & DHCIFF_RESPOND_PREFIX )
++					? dp->val_dhcp6addr.plen : 0
++				       );
+ 				/* set up address status code if any */
+ 				if (dp->val_dhcp6addr.status_code != DH6OPT_STCODE_UNDEFINE) {
+ 					status.dh6_status_type = htons(DH6OPT_STATUS_CODE);
+@@ -1438,6 +1490,8 @@
+ 			    		dhcp6_stcodestr(ntohs(status.dh6_status_code)));
+ 					optlen += sizeof(status);
+ 					tp += sizeof(status);
++					dprintf(LOG_DEBUG, "set IADDR status len %d optlen: %d",
++						(int) sizeof(status), optlen);
+ 					/* XXX: copy status message if any */
+ 				}
+ 			}
+@@ -1595,8 +1649,8 @@
+ 	}
+ 	if (optinfo->dns_list.domainlist != NULL) {
+ 		struct domain_list *dlist;
+-		u_char *dst;
+-		size_t dstsiz;
++		unsigned char *dst;
++//		size_t dstsiz;
+ 		optlen = 0;
+ 		tmpbuf = NULL;
+ 		if ((tmpbuf = malloc(MAXDNAME * MAXDN)) == NULL) {
+@@ -1833,6 +1887,10 @@
+ 		return "rapid commit";
+ 	case DH6OPT_DNS_RESOLVERS:
+ 		return "DNS_RESOLVERS";
++	case DH6OPT_RELAY_MSG:
++		return "relay message";
++	case DH6OPT_INTERFACE_ID:
++		return "interface identifier";
+ 	default:
+ 		sprintf(genstr, "opt_%d", type);
+ 		return (genstr);
+--- dhcp-0.10/common.h.rh	2003-04-30 15:04:07.000000000 -0400
++++ dhcp-0.10/common.h	2007-02-09 01:28:31.000000000 -0500
+@@ -67,7 +67,7 @@
+ extern long random_between __P((long, long));
+ extern int prefix6_mask __P((struct in6_addr *, int));
+ extern int sa6_plen2mask __P((struct sockaddr_in6 *, int));
+-extern char *addr2str __P((struct sockaddr *));
++extern char *addr2str __P((struct sockaddr *, socklen_t));
+ extern char *in6addr2str __P((struct in6_addr *, int));
+ extern const char *getdev __P((struct sockaddr_in6 *));
+ extern int in6_addrscopebyif __P((struct in6_addr *, char *));
+@@ -98,6 +98,7 @@
+ extern int duidcpy __P((struct duid *, const struct duid *));
+ extern int duidcmp __P((const struct duid *, const struct duid *));
+ extern void duidfree __P((struct duid *));
++extern void relayfree __P((struct relay_list *));
+ extern void ifinit __P((const char *));
+ extern int configure_duid __P((const char *, struct duid *));
+ extern struct dhcp6_if *find_ifconfbyname __P((const char *));
+--- dhcp-0.10/config.c.rh	2003-04-11 20:25:32.000000000 -0400
++++ dhcp-0.10/config.c	2007-02-09 01:28:31.000000000 -0500
+@@ -41,8 +41,8 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <ifaddrs.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -57,9 +57,11 @@
+ 
+ static int add_options __P((int, struct dhcp6_ifconf *, struct cf_list *));
+ static int add_address __P((struct dhcp6_list *, struct dhcp6_addr *));
++static int add_option  __P((struct dhcp6_option_list *, struct cf_list *));
++static int clear_option_list  __P((struct dhcp6_option_list *));
++
+ static void clear_ifconf __P((struct dhcp6_ifconf *));
+ static void clear_hostconf __P((struct host_conf *));
+-static void clear_options __P((struct dhcp6_optconf *));
+ 
+ int
+ configure_interface(const struct cf_namelist *iflist)
+@@ -88,6 +90,7 @@
+ 		ifc->server_pref = DH6OPT_PREF_UNDEF;
+ 		TAILQ_INIT(&ifc->reqopt_list);
+ 		TAILQ_INIT(&ifc->addr_list);
++		TAILQ_INIT(&ifc->option_list);
+ 
+ 		for (cfl = ifp->params; cfl; cfl = cfl->next) {
+ 			switch(cfl->type) {
+@@ -185,6 +188,16 @@
+ 				break;
+ 			case DECL_PREFIX_INFO:
+ 				break;
++			case DECL_PREFIX_DELEGATION_INTERFACE:
++			        if (add_option(&ifc->option_list, cfl)){
++					dprintf(LOG_ERR, "%s failed to configure prefix-delegation-interface for %s",
++						FNAME, ifc->ifname);
++					goto bad;
++				}
++				break;
++			case DECL_USE_RA_PREFIX:
++			        ifc->use_ra_prefix = 1;
++				break;
+ 			default:
+ 				dprintf(LOG_ERR, "%s" "%s:%d "
+ 					"invalid interface configuration",
+@@ -450,11 +463,6 @@
+ 
+ 			ifp->allow_flags = ifc->allow_flags;
+ 
+-			clear_options(ifp->send_options);
+-
+-			ifp->send_options = ifc->send_options;
+-			ifc->send_options = NULL;
+-
+ 			dhcp6_clear_list(&ifp->reqopt_list);
+ 			ifp->reqopt_list = ifc->reqopt_list;
+ 			TAILQ_INIT(&ifc->reqopt_list);
+@@ -467,8 +475,14 @@
+ 			ifp->prefix_list = ifc->prefix_list;
+ 			TAILQ_INIT(&ifc->prefix_list);
+ 			
++			clear_option_list(&ifp->option_list);
++			ifp->option_list = ifc->option_list;
++			TAILQ_INIT(&ifc->option_list);
++
+ 			ifp->server_pref = ifc->server_pref;
+ 
++			ifp->use_ra_prefix = ifc->use_ra_prefix;
++
+ 			memcpy(&ifp->iaidinfo, &ifc->iaidinfo, sizeof(ifp->iaidinfo));
+ 		}
+ 	}
+@@ -492,7 +506,7 @@
+ 		ifc_next = ifc->next;
+ 
+ 		free(ifc->ifname);
+-		clear_options(ifc->send_options);
++
+ 		dhcp6_clear_list(&ifc->reqopt_list);
+ 
+ 		free(ifc);
+@@ -519,19 +533,6 @@
+ 	}
+ }
+ 
+-static void
+-clear_options(struct dhcp6_optconf *opt0)
+-{
+-	struct dhcp6_optconf *opt, *opt_next;
+-
+-	for (opt = opt0; opt; opt = opt_next) {
+-		opt_next = opt->next;
+-
+-		free(opt->val);
+-		free(opt);
+-	}
+-}
+-
+ static int
+ add_options(int opcode,	struct dhcp6_ifconf *ifc,
+ 	    struct cf_list *cfl0)
+@@ -647,3 +648,54 @@
+ 	return (0);
+ }
+ 
++int add_option (struct dhcp6_option_list *opts, struct cf_list *cfl)
++{
++	struct dhcp6_option *opt ;
++
++	if ( get_if_option( opts, cfl->type ) != 0L )
++		return (-1);
++
++	switch (cfl->type)
++	{
++	case DECL_PREFIX_DELEGATION_INTERFACE:
++		opt = (struct dhcp6_option*)malloc(sizeof(struct dhcp6_option));
++		opt->type = cfl->type;
++		if ( cfl->ptr != 0L )
++		{
++			opt->len = strlen((char*)(cfl->ptr))+1;
++			opt->val = malloc(opt->len);
++			memcpy(opt->val, cfl->ptr, opt->len);
++		}else
++		{
++			opt->val = malloc(1);
++			opt->len = 0;
++			*((char*)(opt->val))='\0';
++		}
++		TAILQ_INSERT_TAIL(opts, opt, link);
++		break;
++	default:
++	        break;
++	}
++	return (0);
++}
++
++int clear_option_list (struct dhcp6_option_list *opts)
++{
++	struct dhcp6_option *opt;
++	while ((opt = TAILQ_FIRST(opts)) != NULL) {
++		TAILQ_REMOVE(opts, opt, link);
++		free(opt);
++	}
++	return (0);
++}
++
++void *get_if_option( struct dhcp6_option_list *opts, int type )
++{
++	struct dhcp6_option *opt;
++	TAILQ_FOREACH( opt, opts, link)
++	{
++		if ( opt->type == type )
++			return opt->val;
++	}
++	return 0L;
++}
+--- dhcp-0.10/config.h.rh	2004-03-04 18:31:24.000000000 -0500
++++ dhcp-0.10/config.h	2007-02-09 01:28:31.000000000 -0500
+@@ -51,6 +51,15 @@
+ 	int flags;
+ };
+ 
++struct dhcp6_option {
++	TAILQ_ENTRY(dhcp6_option) link;
++	int type;
++	int len;
++	void *val;
++};
++
++TAILQ_HEAD(dhcp6_option_list, dhcp6_option);
++
+ /* per-interface information */
+ struct dhcp6_if {
+ 	struct dhcp6_if *next;
+@@ -87,17 +96,21 @@
+ #define DHCIFF_TEMP_ADDRS 0x4
+ #define DHCIFF_PREFIX_DELEGATION 0x8
+ #define DHCIFF_UNICAST 0x10
+-
++#define DHCIFF_REQUEST_PREFIX 0x20
++#define DHCIFF_RESPOND_PREFIX 0x40
+ 
+ 	struct in6_addr linklocal;
+ 	int server_pref;	/* server preference (server only) */
+-	struct dhcp6_optconf *send_options;
++
++        int use_ra_prefix;
++
+ 	struct dhcp6_list reqopt_list;
+ 	/* request specific addresses list from client */
+ 	struct dhcp6_list addr_list;
+ 	struct dhcp6_list prefix_list;
++	struct dhcp6_option_list option_list;
+ 	struct dhcp6_serverinfo *current_server;
+-	struct dhcp6_serverinfo *servers;
++	struct dhcp6_serverinfo *servers;    
+ };
+ 
+ struct dhcp6_event {
+@@ -160,12 +173,14 @@
+ 
+ 	int server_pref;	/* server preference (server only) */
+ 	struct dhcp6_iaid_info iaidinfo;
+-	struct dhcp6_optconf *send_options;
+-	struct dhcp6_optconf *allow_options;
+ 
+ 	struct dhcp6_list prefix_list;
+ 	struct dhcp6_list addr_list;
+ 	struct dhcp6_list reqopt_list;
++
++	struct dhcp6_option_list option_list;
++
++        int use_ra_prefix;  
+ };
+ 
+ struct prefix_ifconf {
+@@ -199,14 +214,6 @@
+ 	struct dhcp6_list addr_binding_list;
+ };
+ 
+-/* DHCP option information */
+-struct dhcp6_optconf {
+-	struct dhcp6_optconf *next;
+-	int type;
+-	int len;
+-	char *val;
+-};
+-
+ /* structures and definitions used in the config file parser */
+ struct cf_namelist {
+ 	struct cf_namelist *next;
+@@ -277,10 +284,10 @@
+ 
+ enum {DECL_SEND, DECL_ALLOW, DECL_INFO_ONLY, DECL_TEMP_ADDR, DECL_REQUEST, DECL_DUID,
+       DECL_PREFIX, DECL_PREFERENCE, DECL_IAID, DECL_RENEWTIME, DECL_REBINDTIME,
+-      DECL_ADDRESS, DECL_LINKLOCAL, DECL_PREFIX_INFO, DECL_PREFIX_REQ,
++      DECL_ADDRESS, DECL_LINKLOCAL, DECL_PREFIX_INFO, DECL_PREFIX_REQ, DECL_PREFIX_DELEGATION_INTERFACE,
+       DHCPOPT_PREFIX_DELEGATION, IFPARAM_SLA_ID, IFPARAM_SLA_LEN,
+       DHCPOPT_RAPID_COMMIT, 
+-      DHCPOPT_DNS, ADDRESS_LIST_ENT };
++      DHCPOPT_DNS, ADDRESS_LIST_ENT, DECL_USE_RA_PREFIX };
+ 
+ typedef enum {DHCP6_MODE_SERVER, DHCP6_MODE_CLIENT, DHCP6_MODE_RELAY }
+ dhcp6_mode_t;
+@@ -303,3 +310,5 @@
+ extern int cfparse (const char *);
+ extern int resolv_parse (struct dns_list *);
+ extern int get_if_rainfo(struct dhcp6_if *ifp);
++
++extern void *get_if_option( struct dhcp6_option_list *, int);
+--- dhcp-0.10/configure.in.rh	2003-04-11 20:25:33.000000000 -0400
++++ dhcp-0.10/configure.in	2007-02-09 01:28:31.000000000 -0500
+@@ -66,14 +66,8 @@
+ 	;;
+ *)	;;
+ esac
+-
+-AC_REPLACE_FUNCS(getaddrinfo)
+-AC_REPLACE_FUNCS(getnameinfo)
+-AC_REPLACE_FUNCS(ifaddrs)
+-AC_CHECK_FUNCS(if_nametoindex)
+-AC_REPLACE_FUNCS(strlcpy strlcat)
+-
+ dnl Checks for header files.
++AC_REPLACE_FUNCS(strlcpy strlcat)
+ AC_HEADER_STDC
+ AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h syslog.h unistd.h ifaddrs.h)
+ AC_MSG_CHECKING(for socklen_t)
+@@ -206,3 +200,4 @@
+ AC_CHECK_HEADERS(stdarg.h)
+ 
+ AC_OUTPUT(Makefile)
++AC_OUTPUT(Makefile.inc)
+--- dhcp-0.10/dad_token.l.rh	2003-05-29 18:23:28.000000000 -0400
++++ dhcp-0.10/dad_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -34,19 +34,25 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <sys/types.h>
++#include <unistd.h>
+ #include <netinet/in.h>
+ #include <net/if.h>
+-
++#include <arpa/inet.h>
+ #include <errno.h>
+ #include <syslog.h>
+ #include <string.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+ #include "lease.h"
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ #define YYABORT(msg) dprintf(LOG_ERR, msg " %s lineno %d.", \
+ 	ifyytext, num_lines)
+ 
+@@ -194,5 +200,5 @@
+ 			file, strerror(errno));
+ 		return (-1);
+ 	}
+-	yylex();
++	return yylex();
+ }
+--- dhcp-0.10/dhcp6.h.rh	2004-03-04 18:31:24.000000000 -0500
++++ dhcp-0.10/dhcp6.h	2007-02-09 01:28:31.000000000 -0500
+@@ -123,7 +123,12 @@
+ 
+ struct duid {
+ 	u_int8_t duid_len;	/* length */
+-	char *duid_id;		/* variable length ID value (must be opaque) */
++	unsigned char *duid_id;		/* variable length ID value (must be opaque) */
++};
++
++struct intf_id {
++	u_int16_t intf_len;	/* length */
++	char *intf_id;		/* variable length ID value (must be opaque) */
+ };
+ 
+ /* iaid info for the IA_NA */
+@@ -188,6 +193,28 @@
+ 	struct domain_list *domainlist;
+ };
+ 
++/* DHCP6 relay agent base packet format */
++struct dhcp6_relay {
++	u_int8_t dh6_msg_type;
++	u_int8_t dh6_hop_count;
++	struct in6_addr link_addr;
++	struct in6_addr peer_addr;
++	/* options follow */
++} __attribute__ ((__packed__));
++
++
++struct relay_listval {
++	TAILQ_ENTRY(relay_listval) link;
++	
++	struct dhcp6_relay relay;
++	struct intf_id *intf_id;
++
++	/* pointer to the Relay Message option in the RELAY-REPL */
++	struct dhcp6opt *option;
++};
++
++TAILQ_HEAD (relay_list, relay_listval);
++
+ struct dhcp6_optinfo {
+ 	struct duid clientID;	/* DUID */
+ 	struct duid serverID;	/* DUID */
+@@ -201,6 +228,8 @@
+ 	struct dhcp6_list reqopt_list; /*  options in option request */
+ 	struct dhcp6_list stcode_list; /* status code */
+ 	struct dns_list dns_list; /* DNS server list */
++	struct relay_list relay_list; /* list of the relays the message passed
++	                                 through on its way to the server */
+ };
+ 
+ /* DHCP6 base packet format */
+@@ -226,8 +255,7 @@
+ #  define DH6OPT_PREF_UNDEF 0 
+ #  define DH6OPT_PREF_MAX 255
+ #define DH6OPT_ELAPSED_TIME 8
+-#define DH6OPT_CLIENT_MSG 9
+-#define DH6OPT_SERVER_MSG 10
++#define DH6OPT_RELAY_MSG 9
+ #define DH6OPT_AUTH 11
+ #define DH6OPT_UNICAST 12
+ #define DH6OPT_STATUS_CODE 13
+@@ -273,6 +301,7 @@
+  */
+ #define DH6OPT_IA_PD CONF_DH6OPT_IA_PD
+ #define DH6OPT_IAPREFIX CONF_DH6OPT_IAPREFIX
++#define DH6OPT_REQUEST_PREFIX 28
+ 
+ struct dhcp6opt {
+ 	u_int16_t dh6opt_type;
+--- dhcp-0.10/dhcp6c.c.rh	2004-03-04 18:31:24.000000000 -0500
++++ dhcp-0.10/dhcp6c.c	2007-02-09 01:28:31.000000000 -0500
+@@ -65,8 +65,9 @@
+ #include <string.h>
+ #include <err.h>
+ #include <ifaddrs.h>
++#include <sys/ioctl.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -93,7 +94,7 @@
+ static struct iaid_table iaidtab[100];
+ static u_int8_t client6_request_flag = 0;
+ static	char leasename[100];
+-static int rapatch = 0;
++//static int rapatch = 0;
+ 
+ #define CLIENT6_RELEASE_ADDR	0x1
+ #define CLIENT6_CONFIRM_ADDR	0x2
+@@ -102,9 +103,9 @@
+ 
+ #define CLIENT6_INFO_REQ	0x10
+ 
+-int insock;	/* inbound udp port */
+-int outsock;	/* outbound udp port */
+-int nlsock;	
++int insock = -1;	/* inbound udp port */
++int outsock = -1;	/* outbound udp port */
++int nlsock = -1;	
+ 
+ extern char *raproc_file;
+ extern char *ifproc_file;
+@@ -113,6 +114,7 @@
+ extern struct dhcp6_iaidaddr client6_iaidaddr;
+ FILE *dhcp6_resolv_file;
+ static const struct sockaddr_in6 *sa6_allagent;
++static socklen_t sa6_alen;
+ static struct duid client_duid;
+ 
+ static void usage __P((void));
+@@ -146,14 +148,15 @@
+ extern int client6_ifaddrconf __P((ifaddrconf_cmd_t, struct dhcp6_addr *));
+ extern struct dhcp6_timer *syncfile_timo __P((void *));
+ extern int radvd_parse (struct dhcp6_iaidaddr *, int);
++extern int dad_parse(const char *file);
+ 
+ #define DHCP6C_CONF "/etc/dhcp6c.conf"
+ #define DHCP6C_PIDFILE "/var/run/dhcpv6/dhcp6c.pid"
+ #define DUID_FILE "/var/lib/dhcpv6/dhcp6c_duid"
+ 
+ static int pid;
+-static char cmdbuf[1024];
+-static char oldlink[256];
++//static char cmdbuf[1024];
++//static char oldlink[256];
+ char client6_lease_temp[256];
+ struct dhcp6_list request_list;
+ 
+@@ -290,6 +293,7 @@
+ 	}
+ 
+ 	ifinit(device);
++	setup_interface(device);
+ 
+ 	if ((cfparse(conffile)) != 0) {
+ 		dprintf(LOG_ERR, "%s" "failed to parse configuration file",
+@@ -322,9 +326,11 @@
+ 	int error, on = 1;
+ 	struct dhcp6_if *ifp;
+ 	int ifidx;
+-	struct ifaddrs *ifa, *ifap;
++//	struct ifaddrs *ifa, *ifap;
+ 	char linklocal[64];
+ 	struct in6_addr lladdr;
++	time_t retry, now;
++	int bound;
+ 	
+ 	ifidx = if_nametoindex(device);
+ 	if (ifidx == 0) {
+@@ -379,12 +385,34 @@
+ 	}
+ #endif
+ 	((struct sockaddr_in6 *)(res->ai_addr))->sin6_scope_id = ifidx;
+-	dprintf(LOG_DEBUG, "res addr is %s/%d", addr2str(res->ai_addr), res->ai_addrlen);
+-	if (bind(insock, res->ai_addr, res->ai_addrlen) < 0) {
+-		dprintf(LOG_ERR, "%s" "bind(inbound): %s",
+-			FNAME, strerror(errno));
+-		exit(1);
++	dprintf(LOG_DEBUG, "res addr is %s/%d", addr2str(res->ai_addr, res->ai_addrlen), res->ai_addrlen);
++
++	/*
++	 * If the interface has JUST been brought up, the kernel may not have
++	 * enough time to allow the bind to the linklocal address - it will
++	 * then return EADDRNOTAVAIL. The bind will succeed if we try again.
++	 */
++	retry = now = time(0);
++	bound = 0;
++	do {
++		if (bind(insock, res->ai_addr, res->ai_addrlen) < 0) {
++			bound = -errno;
++			retry = time(0);
++			if ((bound != -EADDRNOTAVAIL) || ((retry - now) > 5))
++				break;
++			struct timespec tv = { 0, 200000000 };
++			nanosleep(&tv, 0);
++		} else {
++			bound = 1;
++			break;
++		}
++	} while ((retry - now) < 5);
++
++	if (bound < 0) {
++		dprintf(LOG_ERR, "%s" "bind(inbound): %s", FNAME, strerror(-bound));
++		exit(bound);
+ 	}
++
+ 	freeaddrinfo(res);
+ 
+ 	hints.ai_flags = 0;
+@@ -414,12 +442,6 @@
+ 		exit(1);
+ 	}
+ 	freeaddrinfo(res);
+-	/* open a socket to watch the off-on link for confirm messages */
+-	if ((nlsock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+-		dprintf(LOG_ERR, "%s" "open a socket: %s",
+-			FNAME, strerror(errno));
+-		exit(1);
+-	}
+ 	memset(&hints, 0, sizeof(hints));
+ 	hints.ai_family = PF_INET6;
+ 	hints.ai_socktype = SOCK_DGRAM;
+@@ -432,6 +454,7 @@
+ 	}
+ 	memcpy(&sa6_allagent_storage, res->ai_addr, res->ai_addrlen);
+ 	sa6_allagent = (const struct sockaddr_in6 *)&sa6_allagent_storage;
++	sa6_alen = res->ai_addrlen;
+ 	freeaddrinfo(res);
+ 
+ 	/* client interface configuration */
+@@ -501,7 +524,7 @@
+ 	if (client6_lease_file == NULL)
+ 		exit(1);
+ 	if (!TAILQ_EMPTY(&client6_iaidaddr.lease_list)) {
+-		struct dhcp6_lease *cl;
++//		struct dhcp6_lease *cl;
+ 		struct dhcp6_listval *lv;
+ 		if (!(client6_request_flag & CLIENT6_REQUEST_ADDR) && 
+ 				!(client6_request_flag & CLIENT6_RELEASE_ADDR))
+@@ -525,7 +548,6 @@
+ 		dprintf(LOG_INFO, "no ipv6 addresses are leased by client");
+ 		exit(0);
+ 	}
+-	setup_interface(ifp->ifname);
+ 	ifp->link_flag |= IFF_RUNNING;
+ 
+ 	/* get addrconf prefix from kernel */
+@@ -600,7 +622,7 @@
+ static void
+ process_signals()
+ {
+-	struct stat buf;
++//	struct stat buf;
+ 	if ((sig_flags & SIGF_TERM)) {
+ 		dprintf(LOG_INFO, FNAME "exiting");
+ 		free_resources(dhcp6_if);
+@@ -658,7 +680,7 @@
+ 	struct dhcp6_event *ev = (struct dhcp6_event *)arg;
+ 	struct dhcp6_if *ifp;
+ 	struct timeval now;
+-	struct ra_info *rainfo;
++//	struct ra_info *rainfo;
+ 	
+ 	ifp = ev->ifp;
+ 	ev->timeouts++;
+@@ -812,6 +834,7 @@
+ 	struct dhcp6_optinfo optinfo;
+ 	ssize_t optlen, len;
+ 	struct timeval duration, now;
++	socklen_t salen;
+ 
+ 	ifp = ev->ifp;
+ 
+@@ -950,8 +973,14 @@
+ 			if (dhcp6_copy_list(&optinfo.addr_list, &request_list))
+ 				goto end;
+ 		}
++		/* support for server assigned prefix */
++		if ( ! ifp->use_ra_prefix )
++		    optinfo.flags |= DHCIFF_REQUEST_PREFIX;
+ 		break;
+ 	case DHCP6S_REQUEST:
++		/* support for server assigned prefix */
++		if ( ! ifp->use_ra_prefix )
++		    optinfo.flags |= DHCIFF_REQUEST_PREFIX;
+ 		if (!(ifp->send_flags & DHCIFF_INFO_ONLY)) {
+ 			memcpy(&optinfo.iaidinfo, &client6_iaidaddr.client6_info.iaidinfo,
+ 					sizeof(optinfo.iaidinfo));
+@@ -1035,15 +1064,17 @@
+ 				exit(1);
+ 			}
+ 			memcpy(&dst, res->ai_addr, res->ai_addrlen);
++			salen = res->ai_addrlen;
+ 			break;
+ 		}
+ 	default:
+ 		dst = *sa6_allagent;
++		salen = sa6_alen;
+ 		break;
+ 	}
+ 	dst.sin6_scope_id = ifp->linkid;
+ 	dprintf(LOG_DEBUG, "send dst if %s addr is %s scope id is %d", 
+-		ifp->ifname, addr2str((struct sockaddr *)&dst), ifp->linkid);
++		ifp->ifname, addr2str((struct sockaddr *)&dst, salen), ifp->linkid);
+ 	if (sendto(ifp->outsock, buf, len, MSG_DONTROUTE, (struct sockaddr *)&dst,
+ 	    sizeof(dst)) == -1) {
+ 		dprintf(LOG_ERR, FNAME "transmit failed: %s", strerror(errno));
+@@ -1052,7 +1083,7 @@
+ 
+ 	dprintf(LOG_DEBUG, "%s" "send %s to %s", FNAME,
+ 		dhcp6msgstr(dh6->dh6_msgtype),
+-		addr2str((struct sockaddr *)&dst));
++		addr2str((struct sockaddr *)&dst, salen));
+ 
+   end:
+ 	dhcp6_clear_options(&optinfo);
+@@ -1114,7 +1145,7 @@
+ 
+ 	dprintf(LOG_DEBUG, "%s" "receive %s from %s scope id %d %s", FNAME,
+ 		dhcp6msgstr(dh6->dh6_msgtype),
+-		addr2str((struct sockaddr *)&from),
++		addr2str((struct sockaddr *)&from, sizeof (((struct sockaddr *)&from)->sa_data)),
+ 		((struct sockaddr_in6 *)&from)->sin6_scope_id,
+ 		ifp->ifname);
+ 
+@@ -1139,7 +1170,7 @@
+ 	default:
+ 		dprintf(LOG_INFO, "%s" "received an unexpected message (%s) "
+ 			"from %s", FNAME, dhcp6msgstr(dh6->dh6_msgtype),
+-			addr2str((struct sockaddr *)&from));
++			addr2str((struct sockaddr *)&from, sizeof(((struct sockaddr *)&from)->sa_data)));
+ 		break;
+ 	}
+ 
+@@ -1714,10 +1745,10 @@
+ *check_dad_timo(void *arg)
+ {
+ 	struct dhcp6_if *ifp = (struct dhcp6_if *)arg;
+-	struct dhcp6_listval *lv;
+-	struct dhcp6_lease *cl, *cl_next;
+-	struct timeval timo;
+-	double d;
++//	struct dhcp6_listval *lv;
++//	struct dhcp6_lease *cl, *cl_next;
++//	struct timeval timo;
++//	double d;
+ 	int newstate;
+ 	if (client6_iaidaddr.client6_info.type == IAPD)
+ 		goto end;
+@@ -1793,30 +1824,51 @@
+ setup_interface(char *ifname)
+ {
+ 	struct ifreq ifr;
++	int retries = 0;
+ 	/* check the interface */
++
++	/* open a socket to watch the off-on link for confirm messages */
++	if ((nlsock == -1) && ((nlsock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)) {
++		dprintf(LOG_ERR, "%s" "open a socket: %s", FNAME, strerror(errno));
++		exit(1);
++	}
++
++	memset(&ifr,'\0', sizeof(struct ifreq));
+ 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+-again:
++
+ 	if (ioctl(nlsock, SIOCGIFFLAGS, &ifr) < 0) {
+ 		dprintf(LOG_ERR, "ioctl SIOCGIFFLAGS failed");
+ 		exit(1);
+ 	}
+-	if (!ifr.ifr_flags & IFF_UP) {
+-		ifr.ifr_flags |= IFF_UP;
++
++	while ((ifr.ifr_flags & (IFF_UP | IFF_RUNNING)) != (IFF_UP | IFF_RUNNING)) {
++		if (retries++ > 1) {
++			dprintf(LOG_INFO, "NIC is not connected to the network, please connect it.");
++			exit(1);
++		}
++
++		memset(&ifr, '\0', sizeof(struct ifreq));
++		strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
++		ifr.ifr_flags |= (IFF_UP | IFF_RUNNING) ;
+ 		if (ioctl(nlsock, SIOCSIFFLAGS, &ifr) < 0) {
+ 			dprintf(LOG_ERR, "ioctl SIOCSIFFLAGS failed");
+ 			exit(1);
+ 		}
++
++		/*
++		 * give kernel time to assign link local address and to find/respond
++		 * to IPv6 routers...
++		 */
++		sleep(2);
++
++		memset(&ifr, '\0', sizeof(struct ifreq));
++		strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+ 		if (ioctl(nlsock, SIOCGIFFLAGS, &ifr) < 0) {
+ 			dprintf(LOG_ERR, "ioctl SIOCGIFFLAGS failed");
+ 			exit(1);
+ 		}
+ 	}
+-	if (!ifr.ifr_flags & IFF_RUNNING) {
+-		dprintf(LOG_INFO, "NIC is not connected to the network, "
+-			"please connect it. dhcp6c is sleeping ...");
+-		sleep(10);
+-		goto again;
+-	}
++
+ 	return;
+ }
+ 
+--- dhcp-0.10/dhcp6relay.c.rh	2003-02-27 14:43:08.000000000 -0500
++++ dhcp-0.10/dhcp6relay.c	2007-02-09 01:28:31.000000000 -0500
+@@ -53,8 +53,8 @@
+ #include <errno.h>
+ #include <err.h>
+ #include <string.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "common.h"
+ 
+@@ -496,7 +496,7 @@
+ 	}
+ 
+ 	dprintf(LOG_DEBUG, "relay6_recv: from %s, size %d",
+-		addr2str((struct sockaddr *)&from), len); 
++		addr2str((struct sockaddr *)&from, sizeof(from.data)), len); 
+ 
+ 	/* get optional information as ancillary data (if available) */
+ 	for (cm = (struct cmsghdr *)CMSG_FIRSTHDR(&rmh); cm;
+@@ -705,7 +705,7 @@
+ 	if ((sdev = getdev(&sa6_relay)) == NULL) {
+ 		dprintf(LOG_WARNING,
+ 			"relay6_react_advert: can't detect interface from %s",
+-			addr2str((struct sockaddr *)&sa6_relay));
++			in6addr2str(&dh6a->dh6adv_relayaddr, 0));
+ 		return;
+ 	}
+ 
+--- dhcp-0.10/dhcp6s.c.rh	2004-03-15 17:03:21.000000000 -0500
++++ dhcp-0.10/dhcp6s.c	2007-02-09 01:28:31.000000000 -0500
+@@ -67,8 +67,8 @@
+ #include <err.h>
+ #include <netdb.h>
+ #include <limits.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "timer.h"
+ #include "dhcp6.h"
+ #include "config.h"
+@@ -88,7 +88,6 @@
+ 	u_int32_t duration;
+ 	struct dhcp6_timer *timer;
+ };
+-static TAILQ_HEAD(, dhcp6_binding) dhcp6_binding_head;
+ 
+ static char *device[100];
+ static int num_device = 0;
+@@ -100,6 +99,7 @@
+ char server6_lease_temp[100];
+ 
+ static const struct sockaddr_in6 *sa6_any_downstream;
++static u_int16_t upstream_port;
+ static struct msghdr rmh;
+ static char rdatabuf[BUFSIZ];
+ static int rmsgctllen;
+@@ -133,6 +133,15 @@
+ 			     struct sockaddr *, int,
+ 			     struct dhcp6_optinfo *));
+ static struct dhcp6_timer *check_lease_file_timo __P((void *arg));
++static struct dhcp6 *dhcp6_parse_relay __P((struct dhcp6_relay *,
++                                            struct dhcp6_relay *,
++                                            struct dhcp6_optinfo *,
++                                            struct in6_addr *));
++static int dhcp6_set_relay __P((struct dhcp6_relay *,
++                                struct dhcp6_relay *,
++                                struct dhcp6_optinfo *));
++static void dhcp6_set_relay_option_len __P((struct dhcp6_optinfo *,
++                                           int len));
+ extern struct link_decl *dhcp6_allocate_link __P((struct dhcp6_if *, struct rootgroup *, 
+ 			struct in6_addr *));
+ extern struct host_decl *dhcp6_allocate_host __P((struct dhcp6_if *, struct rootgroup *, 
+@@ -164,7 +173,7 @@
+ 	int argc;
+ 	char **argv;
+ {
+-	int ch, i = 0;
++        int ch;//, i = 0;
+ 	struct in6_addr a;
+ 	struct dhcp6_listval *dlv;
+ 	char *progname, *conffile = DHCP6S_CONF;
+@@ -316,6 +325,7 @@
+ 			FNAME, strerror(errno));
+ 		exit(1);
+ 	}
++	upstream_port = ((struct sockaddr_in6 *) res->ai_addr)->sin6_port;
+ 	freeaddrinfo(res);
+ 
+ 	/* initiallize outbound interface */
+@@ -511,6 +521,7 @@
+ 	struct dhcp6_if *ifp;
+ 	struct dhcp6 *dh6;
+ 	struct dhcp6_optinfo optinfo;
++	struct in6_addr relay;  /* the address of the first relay, if any */
+ 	memset(&iov, 0, sizeof(iov));
+ 	memset(&mhdr, 0, sizeof(mhdr));
+ 
+@@ -557,12 +568,34 @@
+ 
+ 	dprintf(LOG_DEBUG, "%s" "received %s from %s", FNAME,
+ 	    dhcp6msgstr(dh6->dh6_msgtype),
+-	    addr2str((struct sockaddr *)&from));
++	    addr2str((struct sockaddr *)&from, sizeof(((struct sockaddr *)&from)->sa_data)));
+ 
++	dhcp6_init_options(&optinfo);
++
++	/*
++	 * If this is a relayed message, parse all of the relay data, storing
++	 * the link addresses, peer addresses, and interface identifiers for
++	 * later use. Get a pointer to the original client message.
++	 */
++	if (dh6->dh6_msgtype == DH6_RELAY_FORW) {
++		dh6 = dhcp6_parse_relay((struct dhcp6_relay *) dh6, 
++		                        (struct dhcp6_relay *) (rdatabuf + len), 
++		                        &optinfo, &relay);
++
++		/*
++		 * NULL means there was an error in the relay format or no
++		 * client message was found.
++		 */
++		if (dh6 == NULL) {
++			dprintf(LOG_INFO, "%s" "failed to parse relay fields "
++			                       "or could not find client message", FNAME);
++			return -1;
++		}
++	}
++ 
+ 	/*
+ 	 * parse and validate options in the request
+ 	 */
+-	dhcp6_init_options(&optinfo);
+ 	if (dhcp6_get_options((struct dhcp6opt *)(dh6 + 1),
+ 	    (struct dhcp6opt *)(rdatabuf + len), &optinfo) < 0) {
+ 		dprintf(LOG_INFO, "%s" "failed to parse options", FNAME);
+@@ -574,7 +607,17 @@
+ 	 * now assume client is on the same link as server
+ 	 * if the subnet couldn't be found return status code NotOnLink to client
+ 	 */
+-	subnet = dhcp6_allocate_link(ifp, globalgroup, NULL);
++	/*
++	 * If the relay list is empty, then this is a message received directly
++	 * from the client, so client is on the same link as the server. 
++	 * Otherwise, allocate the client an address based on the first relay
++	 * that forwarded the message.
++	 */
++	if (TAILQ_EMPTY(&optinfo.relay_list))
++		subnet = dhcp6_allocate_link(ifp, globalgroup, NULL);
++	else
++		subnet = dhcp6_allocate_link(ifp, globalgroup, &relay);
++
+ 	if (!(DH6_VALID_MESSAGE(dh6->dh6_msgtype)))
+ 		dprintf(LOG_INFO, "%s" "unknown or unsupported msgtype %s",
+ 		    FNAME, dhcp6msgstr(dh6->dh6_msgtype));
+@@ -700,15 +743,28 @@
+ 	case DH6_REQUEST:
+ 	case DH6_RENEW:
+ 	case DH6_DECLINE:
+-		if (!IN6_IS_ADDR_MULTICAST(&pi->ipi6_addr)) {
++		/* 
++		 * If the message was relayed, then do not check whether the message
++		 * came in via unicast or multicast, since the relay may be configured
++		 * to send messages via unicast.
++		 */
++		if (TAILQ_EMPTY(&optinfo->relay_list) && 
++		    !IN6_IS_ADDR_MULTICAST(&pi->ipi6_addr)) {
+ 			if (!(roptinfo.flags & DHCIFF_UNICAST)) {
+ 				num = DH6OPT_STCODE_USEMULTICAST;
+ 				goto send;
+ 			} else
+ 				break;
+-		} 
++		}
++		break;
+ 	default:
+-		if (!IN6_IS_ADDR_MULTICAST(&pi->ipi6_addr)) {
++		/* 
++		 * If the message was relayed, then do not check whether the message
++		 * came in via unicast or multicast, since the relay may be configured
++		 * to send messages via unicast.
++		 */
++		if (TAILQ_EMPTY(&optinfo->relay_list) && 
++		    !IN6_IS_ADDR_MULTICAST(&pi->ipi6_addr)) {
+ 			num = DH6OPT_STCODE_USEMULTICAST;
+ 			goto send;
+ 		}
+@@ -945,7 +1001,7 @@
+ {
+ 	char replybuf[BUFSIZ];
+ 	struct sockaddr_in6 dst;
+-	int len, optlen;
++	int len, optlen, relaylen = 0;
+ 	struct dhcp6 *dh6;
+ 
+ 	if (sizeof(struct dhcp6) > sizeof(replybuf)) {
+@@ -953,12 +1009,41 @@
+ 		return (-1);
+ 	}
+ 
+-	dh6 = (struct dhcp6 *)replybuf;
++	if (!TAILQ_EMPTY(&optinfo->relay_list) && 
++	    (relaylen = dhcp6_set_relay((struct dhcp6_relay *) replybuf,
++	                                (struct dhcp6_relay *) (replybuf + 
++	                                                        sizeof (replybuf)),
++	                                optinfo)) < 0) {
++		dprintf(LOG_INFO, "%s" "failed to construct relay message", FNAME);
++		return (-1);
++	}
++
++	dh6 = (struct dhcp6 *) (replybuf + relaylen);
+ 	len = sizeof(*dh6);
+ 	memset(dh6, 0, sizeof(*dh6));
+ 	dh6->dh6_msgtypexid = origmsg->dh6_msgtypexid;
+ 	dh6->dh6_msgtype = (u_int8_t)type;
+-
++	
++	if ( optinfo->flags & DHCIFF_REQUEST_PREFIX )
++	{
++	    if ( ! ( (subnet && (subnet->linkscope.use_ra_prefix))
++		   ||(host && (host->hostscope.use_ra_prefix))
++		   )
++		)
++	    {
++		struct interface *ifnetwork;
++		int no_use_ra_prefix = 1;
++		for (ifnetwork = globalgroup->iflist; ifnetwork; ifnetwork = ifnetwork->next) 
++		{
++		    if (  ( ifp->ifname && ( strcmp( &(ifnetwork->name[0]), ifp->ifname ) == 0 ) )
++			&&(ifnetwork->ifscope.use_ra_prefix)
++			) no_use_ra_prefix = 0;			
++		}
++
++		if ( no_use_ra_prefix )
++		     roptinfo->flags |= DHCIFF_RESPOND_PREFIX;
++	    }
++	}
+ 	/* set options in the reply message */
+ 	if ((optlen = dhcp6_set_options((struct dhcp6opt *)(dh6 + 1),
+ 					(struct dhcp6opt *)(replybuf +
+@@ -970,20 +1055,35 @@
+ 	}
+ 	len += optlen;
+ 
++	/*
++	 * If there were any Relay Message options, fill in the option-len
++	 * field(s) with the appropriate value(s).
++	 */
++	if (!TAILQ_EMPTY(&optinfo->relay_list))
++	    dhcp6_set_relay_option_len(optinfo, len);
++
++	len += relaylen;
++
+ 	/* specify the destination and send the reply */
+ 	dst = *sa6_any_downstream;
+ 	dst.sin6_addr = ((struct sockaddr_in6 *)from)->sin6_addr;
++
++	/* RELAY-REPL messages need to be directed back to the port the relay
++	   agent is listening on, namely DH6PORT_UPSTREAM */
++	if (relaylen > 0)
++		dst.sin6_port = upstream_port;
++
+ 	dst.sin6_scope_id = ((struct sockaddr_in6 *)from)->sin6_scope_id;
+ 	dprintf(LOG_DEBUG, "send destination address is %s, scope id is %d", 
+-		addr2str((struct sockaddr *)&dst), dst.sin6_scope_id);
++		addr2str((struct sockaddr *)&dst, sizeof(dst.sin6_addr)), dst.sin6_scope_id);
+ 	if (transmit_sa(outsock, &dst, replybuf, len) != 0) {
+ 		dprintf(LOG_ERR, "%s" "transmit %s to %s failed", FNAME,
+-			dhcp6msgstr(type), addr2str((struct sockaddr *)&dst));
++			dhcp6msgstr(type), addr2str((struct sockaddr *)&dst, sizeof(dst.sin6_addr)));
+ 		return (-1);
+ 	}
+ 
+ 	dprintf(LOG_DEBUG, "%s" "transmit %s to %s", FNAME,
+-		dhcp6msgstr(type), addr2str((struct sockaddr *)&dst));
++		dhcp6msgstr(type), addr2str((struct sockaddr *)&dst, sizeof(dst.sin6_addr)));
+ 
+ 	return 0;
+ }
+@@ -1009,3 +1109,288 @@
+ 	dhcp6_set_timer(&timo, sync_lease_timer);
+ 	return sync_lease_timer;
+ }
++
++/* 
++ * Parse all of the RELAY-FORW messages and interface ID options. Each
++ * RELAY-FORW messages will have its hop count, link address, peer-address,
++ * and interface ID (if any) put into a relay_listval structure.
++ * A pointer to the actual original client message will be returned.
++ * If this client message cannot be found, NULL is returned to signal an error.
++ */
++static struct dhcp6 *
++dhcp6_parse_relay(relay_msg, endptr, optinfo, relay_addr)
++	struct dhcp6_relay *relay_msg;
++	struct dhcp6_relay *endptr;
++	struct dhcp6_optinfo *optinfo;
++	struct in6_addr *relay_addr;
++{
++	struct relay_listval *relay_val;
++	struct dhcp6 *relayed_msg;  /* the original message that the relay 
++	                               received */
++	struct dhcp6opt *option, *option_endptr = (struct dhcp6opt *) endptr;
++
++	u_int16_t optlen;
++	u_int16_t opt;
++
++	while ((relay_msg + 1) < endptr) {
++		relay_val = (struct relay_listval *) 
++		            calloc (1, sizeof (struct relay_listval));
++
++		if (relay_val == NULL) {
++			dprintf(LOG_ERR, "%s" "failed to allocate memory", FNAME);
++			relayfree(&optinfo->relay_list);
++			return NULL;
++		}
++
++		/* copy the msg-type, hop-count, link-address, and peer-address */
++		memcpy (&relay_val->relay, relay_msg, sizeof (struct dhcp6_relay));
++
++		/* set the msg type to relay reply now so that it doesn't need to be
++		   done when formatting the reply */
++		relay_val->relay.dh6_msg_type = DH6_RELAY_REPL;
++
++		TAILQ_INSERT_TAIL(&optinfo->relay_list, relay_val, link);
++
++		/*
++		 * need to record the first relay's link address field for later use.
++		 * The first relay is the last one we see, so keep overwriting the
++		 * relay value.
++		 */
++		memcpy (relay_addr, &relay_val->relay.link_addr, 
++		        sizeof (struct in6_addr));
++
++		/* now handle the options in the RELAY-FORW message */
++		/*
++		 * The only options that should appear in a RELAY-FORW message are:
++		 * - Interface identifier
++		 * - Relay message
++		 *
++		 * All other options are ignored.
++		 */
++		option = (struct dhcp6opt *) (relay_msg + 1);
++
++		relayed_msg = NULL; /* if this is NULL at the end of the loop, no
++		                       relayed message was found */
++
++		/* since the order of options is not specified, all of the options 
++		   must be processed */
++		while ((option + 1) < option_endptr) {
++			memcpy (&opt, &option->dh6opt_type, sizeof(opt));
++			opt = ntohs(opt);
++			memcpy (&optlen, &option->dh6opt_len, sizeof(optlen));
++			optlen = ntohs(optlen);
++
++			if ((char *) (option + 1) + optlen > (char *) option_endptr) {
++				dprintf(LOG_ERR, "%s" "invalid option length in %s option",
++				        FNAME, dhcp6optstr(opt));
++				relayfree(&optinfo->relay_list);
++				return NULL;
++			}
++
++			if (opt == DH6OPT_INTERFACE_ID) {
++				/* if this is not the first interface identifier option,
++				   then the message is incorrectly formed */
++				if (relay_val->intf_id == NULL) {
++					if (optlen) {
++						relay_val->intf_id = (struct intf_id *) 
++						                     malloc (sizeof (struct intf_id));
++						if (relay_val->intf_id == NULL) {
++							dprintf(LOG_ERR, "%s" "failed to allocate memory", 
++							        FNAME);
++							relayfree(&optinfo->relay_list);
++							return NULL;
++						}
++						else {  
++							relay_val->intf_id->intf_len = optlen;
++							relay_val->intf_id->intf_id = (char *) 
++							                              malloc (optlen);
++
++							if (relay_val->intf_id->intf_id == NULL) {
++								dprintf(LOG_ERR, "%s" 
++								                 "failed to allocate memory", 
++							            FNAME);
++								relayfree(&optinfo->relay_list);
++								return NULL;
++							}
++							else { /* copy the interface identifier so it can
++						              be sent in the reply */
++								memcpy (relay_val->intf_id->intf_id,
++								        ((char *) (option + 1)), optlen);
++							}
++						}
++					}
++					else {
++						dprintf(LOG_ERR, "%s" "Invalid length for interface "
++						                      "identifier option", FNAME);
++					}
++				}
++				else {
++					dprintf(LOG_INFO, "%s" "Multiple interface identifier "
++						               "options in RELAY-FORW Message ",
++					        FNAME);
++					relayfree(&optinfo->relay_list);
++					return NULL;
++				}
++			}
++			else if (opt == DH6OPT_RELAY_MSG) {
++				if (relayed_msg == NULL) 
++					relayed_msg = (struct dhcp6 *) (option + 1);
++				else {
++					dprintf(LOG_INFO, "%s" "Duplicated Relay Message option",
++					        FNAME);
++					relayfree(&optinfo->relay_list);
++					return NULL;
++				}
++			}
++			else   /* No other options besides interface identifier and relay
++			          message make sense, so ignore them with a warning */
++				dprintf(LOG_INFO, "%s" "Unsupported option %s found in "
++			                           "RELAY-FORW message", 
++				        FNAME, dhcp6optstr(opt));
++
++			/* advance the option pointer */
++			option = (struct dhcp6opt *) (((char *) (option + 1)) + optlen);
++		}
++
++		/*
++		 * If the relayed message is non-NULL and is a regular client
++		 * message, then the relay processing is done. If it is another
++		 * RELAY_FORW message, then continue. If the relayed message is
++		 * NULL, signal an error.
++		 */
++		if (relayed_msg != NULL && (char *) (relayed_msg + 1) <= 
++		                           (char *) endptr) {
++			/* done if have found the client message */
++			if (relayed_msg->dh6_msgtype != DH6_RELAY_FORW) 
++				return relayed_msg;
++			else 
++				relay_msg = (struct dhcp6_relay *) relayed_msg;
++		}
++		else {
++			dprintf(LOG_ERR, "%s" "invalid relayed message", FNAME);
++			relayfree(&optinfo->relay_list);
++			return NULL;
++		}
++	}
++	return NULL;
++}
++
++/*
++ * Format all of the RELAY-REPL messages and options to send back to the 
++ * client. A RELAY-REPL message and Relay Message option are added for 
++ * each of the relays that were in the RELAY-FORW packet that this is 
++ * in response to.
++ */
++static int 
++dhcp6_set_relay (msg, endptr, optinfo)
++	struct dhcp6_relay *msg;
++	struct dhcp6_relay *endptr;
++	struct dhcp6_optinfo *optinfo;
++{
++	struct relay_listval *relay;
++	struct dhcp6opt *option;
++	int relaylen = 0;
++	u_int16_t type, len;
++
++	for (relay = TAILQ_FIRST(&optinfo->relay_list); relay; 
++	     relay = TAILQ_NEXT(relay, link)) {
++		/* bounds check */
++		if (((char *) msg) + sizeof (struct dhcp6_relay) >= (char *) endptr) {
++			dprintf(LOG_ERR, "%s" "insufficient buffer size for RELAY-REPL",
++			        FNAME);
++			return -1;
++		}
++
++		memcpy (msg, &relay->relay, sizeof(struct dhcp6_relay));
++
++		relaylen += sizeof(struct dhcp6_relay);
++
++		option = (struct dhcp6opt *) (msg + 1);
++
++		/* include an Interface Identifier option if it was present in the
++		   original message */
++		if (relay->intf_id != NULL) {
++			/* bounds check */
++			if ((((char *) option) + sizeof(struct dhcp6opt) + 
++			    relay->intf_id->intf_len) >= (char *) endptr) {
++				dprintf(LOG_ERR, "%s" "insufficient buffer size for RELAY-REPL",
++				        FNAME);
++				return -1;
++			}
++			type = htons(DH6OPT_INTERFACE_ID);
++			memcpy (&option->dh6opt_type, &type, sizeof(type));
++			len = htons(relay->intf_id->intf_len);
++			memcpy (&option->dh6opt_len, &len, sizeof(len));
++			memcpy (option + 1, relay->intf_id->intf_id, 
++			        relay->intf_id->intf_len);
++			
++			option = (struct dhcp6opt *)(((char *)(option + 1)) + 
++			                             relay->intf_id->intf_len);
++			relaylen += sizeof(struct dhcp6opt) + relay->intf_id->intf_len;
++		}
++
++		/* save a pointer to the relay message option so that it is easier 
++		   to fill in the length later */
++		relay->option = option;
++
++		/* bounds check */
++		if ((char *) (option + 1) >= (char *) endptr) {
++			dprintf(LOG_ERR, "%s" "insufficient buffer size for RELAY-REPL",
++			        FNAME);
++			return -1;
++		}
++
++		/* lastly include the Relay Message option, which encapsulates the
++		   message being relayed */
++		type = htons(DH6OPT_RELAY_MSG);
++		memcpy (&option->dh6opt_type, &type, sizeof(type));
++		relaylen += sizeof(struct dhcp6opt);
++		/* dh6opt_len will be set by dhcp6_set_relay_option_len */
++		
++		msg = (struct dhcp6_relay *) (option + 1);
++	}
++	
++	/*
++	 * if there were no relays, this is an error since this function should
++	 * not have even been called in this case
++	 */
++	if (relaylen == 0) 
++		return -1;
++	else 
++		return relaylen;
++}
++
++/*
++ * Fill in all of the opt-len fields for the Relay Message options now that
++ * the length of the entire message is known.
++ * 
++ * len - the length of the DHCPv6 message to the client (not including any
++ *       relay options)
++ *
++ * Precondition: dhcp6_set_relay has already been called and the relay->option
++ *               fields of all of the elements in optinfo->relay_list are 
++ *               non-NULL
++ */
++static void 
++dhcp6_set_relay_option_len(optinfo, reply_msg_len)
++	struct dhcp6_optinfo *optinfo;
++	int reply_msg_len;
++{
++	struct relay_listval *relay, *last = NULL;
++	u_int16_t len;
++
++	for (relay = TAILQ_LAST(&optinfo->relay_list, relay_list);
++	     relay; relay = TAILQ_PREV(relay, relay_list, link)) {
++		if (last == NULL) {
++			len = htons(reply_msg_len);
++			memcpy (&relay->option->dh6opt_len, &len, sizeof(len));
++			last = relay;
++		}
++		else {
++			len = reply_msg_len + (((void *) (last->option + 1)) -
++			                        ((void *) (relay->option + 1)));
++			len = htons(len);
++			memcpy (&relay->option->dh6opt_len, &len, sizeof(len));
++		}
++	}
++}
+--- dhcp-0.10/dhcp6s.sh.rh	2003-02-18 06:31:49.000000000 -0500
++++ dhcp-0.10/dhcp6s.sh	2007-02-09 01:28:31.000000000 -0500
+@@ -5,11 +5,10 @@
+ #               dhcp6s.
+ #
+ # chkconfig: - 66 36
+-# description: dhcp6s supports server side of  Dynamic Host Configuration
++# description: dhcp6s supports server side of  Dynamic Host Configuration \
+ #              Protocol for IPv6.
+ # processname: dhcp6s
+ # config: /etc/dhcp6s.conf
+-# config: /etc/server6_addr.conf
+ # config: /etc/sysconfig/dhcp6s
+ 
+ # Source function library.
+@@ -20,13 +19,19 @@
+ . /etc/sysconfig/dhcp6s
+ 
+ # Check that networking is up.
+-[ ${NETWORKING} = "no" ] && exit 0
++# networking is not up, return 1 for generic error
++[ ${NETWORKING} = "no" ] && exit 1
+ 
+ # Check that files exist
+-[ -f /usr/local/sbin/dhcp6s ] || exit 0
+-[ -f /etc/dhcp6s.conf ] || exit 0
+-[ -f /etc/server6_addr.conf ] || exit 0
+-[ ${DHCP6SIF} = "" ] && exit 0
++# return 5 if program is not installed
++[ -x /usr/sbin/dhcp6s ] || exit 5
++
++# return 6 if program is not configured
++[ -f /etc/dhcp6s.conf ] || exit 6
++
++if [ "x$DHCP6SIF" =  "x" ]; then
++	logger -s -t "dhcp6s" -p "daemon.info" "Warning: dhcp6s listening on ALL interfaces - set DHCP6SIF in /etc/sysconfig/dhcp6s"
++fi
+ 
+ RETVAL=0
+ prog="dhcp6s"
+@@ -34,7 +39,7 @@
+ start() {
+ 	# Start daemons.
+ 	echo -n $"Starting $prog: "
+-	daemon /usr/local/sbin/dhcp6s -c /etc/dhcp6s.conf ${DHCP6SARGS} ${DHCP6SIF}
++	daemon /usr/sbin/dhcp6s -c /etc/dhcp6s.conf ${DHCP6SARGS} ${DHCP6SIF}
+ 	RETVAL=$?
+ 	echo
+ 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp6s
+@@ -55,15 +60,21 @@
+ case "$1" in
+   start)
+ 	start
++	RETVAL=$?
+ 	;;
+   stop)
+ 	stop
++	RETVAL=$?
+ 	;;
+-  restart|reload)
++  restart|force-reload)
+ 	stop
+ 	start
+ 	RETVAL=$?
+ 	;;
++  reload)
++	# unimplemented
++	RETVAL=3
++	;;
+   condrestart)
+ 	if [ -f /var/lock/subsys/dhcp6s ]; then
+ 	    stop
+@@ -81,4 +92,3 @@
+ esac
+ 
+ exit $RETVAL
+-
+--- dhcp-0.10/dhcp6s.sysconfig.rh	2003-02-18 06:31:49.000000000 -0500
++++ dhcp-0.10/dhcp6s.sysconfig	2007-02-09 01:28:31.000000000 -0500
+@@ -1,4 +1,4 @@
+ # specify the interface for dhcp6s
+-DHCP6SIF=eth0
++DHCP6SIF=
+ # Command line options here
+-DHCP6CARGS=
++DHCP6SARGS=
+--- dhcp-0.10/ifaddrs.c.rh	2003-04-22 14:05:33.000000000 -0400
++++ dhcp-0.10/ifaddrs.c	2007-02-09 01:28:31.000000000 -0500
+@@ -45,6 +45,8 @@
+ #include "libc-compat.h"
+ #endif
+ 
++extern int __close( int );
++
+ /* ====================================================================== */
+ struct nlmsg_list
+ {
+--- dhcp-0.10/netlink.c.rh	2004-03-15 17:02:09.000000000 -0500
++++ dhcp-0.10/netlink.c	2007-02-09 01:28:31.000000000 -0500
+@@ -28,22 +28,25 @@
+  */
+ 
+ /* Author: Shirley Ma, xma@us.ibm.com */
+-
++#include <sys/types.h>
++#include <unistd.h>
+ #include <string.h>
+ #include <time.h>
+ #include <malloc.h>
+ #include <errno.h>
+ #include <syslog.h>
+-#include <sys/types.h>
+ #include <sys/socket.h>
+ #include <asm/types.h>
+ #include <linux/netlink.h>
+ #include <linux/rtnetlink.h>
+ #include <netinet/in.h>
++#include <arpa/inet.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
++#include "common.h"
++
+ 
+ static void
+ get_if_prefix(struct nlmsghdr *nlm, int nlm_len, int request,
+@@ -117,8 +120,8 @@
+ 		dprintf(LOG_DEBUG, "get prefix plen %d",rtm->rtm_dst_len);
+ 		break;
+ 	case RTA_CACHEINFO:
+-		dprintf("prefix route life time is %lu\n",
+-		      ((struct rta_cacheinfo *)rtadata)->rta_expires);
++		dprintf(LOG_DEBUG,"prefix route life time is %lu\n",
++		      (unsigned long)((struct rta_cacheinfo *)rtadata)->rta_expires);
+ 		break;
+ 	default:
+ 		break;
+@@ -132,10 +135,8 @@
+ {
+ 	struct ifinfomsg *ifim = (struct ifinfomsg *)NLMSG_DATA(nlm);
+ 	struct rtattr *rta, *rta1;
+-	size_t rtasize, rtasize1, rtapayload;
++	size_t rtasize,  rtapayload, rtasize1;
+ 	void *rtadata;
+-	struct ra_info *rainfo;
+-	char addr[64];
+ 
+ 	dprintf(LOG_DEBUG, "get_if_flags called");
+ 
+@@ -159,7 +160,6 @@
+ 		for (rta1 = (struct rtattr *)rtadata; RTA_OK(rta1, rtasize1);
+ 		     rta1 = RTA_NEXT(rta1, rtasize1)) {
+ 			void *rtadata1 = RTA_DATA(rta1);
+-			size_t rtapayload1= RTA_PAYLOAD(rta1);
+ 			switch(rta1->rta_type) {
+ 			case IFLA_INET6_CACHEINFO:
+ 				break;
+@@ -275,7 +275,7 @@
+ 	struct nlmsghdr *nlm;
+ 	struct msghdr msgh;
+ 	struct sockaddr_nl nl_addr;
+-	char *newbuf, *buf = NULL;
++	char *buf = NULL;// *newbuf
+ 	size_t newsize = 65536, size = 0;
+ 	int msg_len;
+ 
+@@ -312,8 +312,11 @@
+ 		     nlm = (struct nlmsghdr *)NLMSG_NEXT(nlm, msg_len)) {
+ 			if (nlm->nlmsg_type == NLMSG_DONE ||
+ 			    nlm->nlmsg_type == NLMSG_ERROR) {
+-				dprintf(LOG_ERR, "netlink_recv_rtgenmsg error");
+-				goto out;
++			    if ( nlm->nlmsg_type == NLMSG_ERROR)
++				dprintf(LOG_ERR, "netlink_recv_rtgenmsg error, %d %d %d",
++					request, RTM_GETROUTE, RTM_GETLINK 
++				    );
++			    goto out;
+ 			}
+ 			if (nlm->nlmsg_pid != getpid() ||
+ 			    nlm->nlmsg_seq != seq)
+--- dhcp-0.10/ra_token.l.rh	2004-03-04 18:31:24.000000000 -0500
++++ dhcp-0.10/ra_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -43,12 +43,17 @@
+ #include <errno.h>
+ #include <syslog.h>
+ #include <string.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ #define YYABORT(msg) dprintf(LOG_ERR, msg " %s lineno %d.", \
+ 	rayytext, num_lines)
+ 
+@@ -119,7 +124,7 @@
+ 			strcat(buff, ":0");
+ 			len += 2;
+ 		} 
+-		strcat(buff, "\0");
++		buff[len]='\0';
+ 		if (inet_pton(AF_INET6, buff, &addr) < 1) 
+ 			ABORT;
+ 		memcpy(&rainfo->prefix, &addr, sizeof(rainfo->prefix));
+@@ -171,5 +176,5 @@
+ 			raname, strerror(errno));
+ 		return (-1);
+ 	}
+-	yylex();
++	return yylex();
+ }
+--- dhcp-0.10/radvd_token.l.rh	2003-07-07 14:01:05.000000000 -0400
++++ dhcp-0.10/radvd_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -47,8 +47,8 @@
+ #include <errno.h>
+ #include <syslog.h>
+ #include <string.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -58,6 +58,11 @@
+ #define	PATH_RADVD_PID "/var/run/radvd/radvd.pid"
+ #endif
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ #define YYABORT(msg) dprintf(LOG_ERR, msg " %s lineno %d.", \
+ 	yytext, num_lines)
+ 
+@@ -112,14 +117,24 @@
+ 		BEGIN S_INTERFACE;}
+ 
+ <S_INTERFACE>{string} {
++		char *requested_if;
+ 		fprintf(dhcp6_radvd_file, yytext);
+-		if (!strcmp(yytext, dhcp6_if->ifname))
+-			BEGIN INITIAL;
+-		else {
++		if ( ( ( (requested_if = get_if_option(&(dhcp6_if->option_list), 
++							DECL_PREFIX_DELEGATION_INTERFACE
++						       )
++			   ) != 0L
++			 )
++		       &&( strcmp(yytext, requested_if) == 0)
++		     )		     
++                   ||((requested_if == 0L) && (strcmp(yytext, dhcp6_if->ifname)==0))
++		   )
++		{
+ 			TAILQ_INIT(&ori_prefix_list);
+ 			TAILQ_INIT(&previous_prefix_list);
+-			BEGIN S_IFNAME;}
+-		}
++			BEGIN S_IFNAME;
++		}else 
++		        BEGIN INITIAL;
++}
+ 
+ <S_IFNAME>{comment} {
+ 		if (strstr(yytext, DHCP6_MARK) != NULL) {
+@@ -280,13 +295,13 @@
+ 	}
+ 	client6iaid = client6_iaid;
+ 	update_flag = flag;
+-	yylex();
++	return yylex();
+ }
+ 
+ static int
+ update_radvd(void)
+ {
+-	struct dhcp6_listval *d, *d_next;
++//	struct dhcp6_listval *d, *d_next;
+ 	struct stat buf;
+ 	if (fflush(dhcp6_radvd_file) == EOF) {
+ 		dprintf(LOG_ERR, "%s" "write radvd.conf.dhcpv6 file fflush failed %s", 
+@@ -341,4 +356,5 @@
+ 	}
+ 	fclose(yyin);
+ 	close(oldfd);
++	return 1;
+ }
+--- dhcp-0.10/resolv_token.l.rh	2003-06-23 13:24:48.000000000 -0400
++++ dhcp-0.10/resolv_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -37,6 +37,7 @@
+ #include <sys/file.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <sys/wait.h>
+ 
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -44,14 +45,19 @@
+ #include <errno.h>
+ #include <syslog.h>
+ #include <string.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+ 
+ #undef yywrap
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ #define YYABORT(msg) dprintf(LOG_ERR, msg " %s lineno %d.", \
+ 	yytext, num_lines)
+ 
+@@ -139,7 +145,43 @@
+ .	{fprintf(dhcp6_resolv_file, yytext);}
+ 
+ %%
++int change_resolv_conf
++(   char *new_rscf
++)
++{
++    char *argv[] = { "/bin/bash", "-c", 0L, 0L };
++    char *cmd;
++    int l, pid, status;
++    extern char **environ;
++
++    if( new_rscf == 0L )
++	return -1;
++    
++    if( getuid() != 0 )
++	return 1;
++    
++    l = strlen(new_rscf) + 73;
++    cmd = (char*)malloc(l);
++    strcpy(cmd, ". /etc/sysconfig/network-scripts/network-functions; change_resolv_conf ");
++    strcpy(cmd+71, new_rscf);
++    argv[2] = cmd;
++    
++    if( (pid = fork()) < 0 )
++	return -1;
++    else
++    if( pid > 0 )
++    {
++	status = 0;
++	if(waitpid(pid, &status, 0L) == pid)
++	    return(   ((status & 0x7f)==0) 
++		    ? ((status >> 8) & 0xff)
++		    : -(status & 0x7f)
++		  );
++    }else
++	execve( argv[0], argv, environ );
+ 
++    return -1;
++}
+ /* parse resolv.conf
+  * create a new resolv.conf.dhcpv6
+  * mv /etc/resolv.conf to /etc/resolv.conf.V6BAK
+@@ -203,14 +245,14 @@
+ 			" failed to fdopen resolv.conf.dhcpv6 file", FNAME);
+ 		return (-1);
+ 	}
+-	yylex();
++	return yylex();
+ }
+ 
+ static int
+ update_resolver(struct dns_list *dns_list)
+ {
+ 	struct domain_list *oldlist, *dprev, *dlist, *dlist_next;
+-	struct domain_list *dfirst = NULL;
++//	struct domain_list *dfirst = NULL;
+ 	struct dhcp6_listval *d, *d_next;
+ 	struct stat buf;
+ 	int i = 0;
+@@ -311,9 +353,9 @@
+ 			}
+ 		}
+ 	}
+-	if (rename(resolv_dhcpv6_file, RESOLV_CONF_FILE)) {
+-		dprintf(LOG_ERR, "%s" " rename failed for resolv.conf file", FNAME);
+-		return(-1);
++	if (change_resolv_conf(resolv_dhcpv6_file)!=0) {
++//		dprintf(LOG_ERR, "%s" " rename failed for resolv.conf file", FNAME);
++//              needs initscripts patch!		return(-1);
+ 	}
+ 	return (0);
+ }
+@@ -321,7 +363,8 @@
+ static int 
+ yywrap()
+ {
+-	update_resolver(new_dns_list);
++        update_resolver(new_dns_list);
+ 	fclose(yyin);
+ 	close(oldfd);
++	return 1;
+ }
+--- dhcp-0.10/server6_addr.c.rh	2004-03-15 17:02:55.000000000 -0500
++++ dhcp-0.10/server6_addr.c	2007-02-09 01:28:31.000000000 -0500
+@@ -36,21 +36,19 @@
+ #include <time.h>
+ //#include <openssl/md5.h>
+ 
++#include <netinet/in.h>
+ #include <sys/types.h>
+ #include <sys/time.h>
+ #include <sys/socket.h>
+ #include <sys/ioctl.h>
+-
+-#include <linux/ipv6.h>
+-
+ #include <net/if.h>
+ 
+ #include <errno.h>
+ #include <syslog.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -553,7 +551,7 @@
+ 	struct in6_addr *tempaddr;
+ {
+ 	int i, num_bytes;
+-	u_int8_t digest[16];
++//	u_int8_t digest[16];
+ 	u_int8_t seed[16];
+ 
+ 	get_random_bytes(seed, 16);
+@@ -579,8 +577,8 @@
+ 	struct dhcp6_optinfo *optinfo, *roptinfo;
+ {
+ 	struct dhcp6_list *reply_list = &roptinfo->addr_list;
+-	struct dhcp6_list *req_list = &optinfo->addr_list;
+-	struct dhcp6_listval *lv, *lv_next;
++//	struct dhcp6_list *req_list = &optinfo->addr_list;
++//	struct dhcp6_listval *lv, *lv_next;
+ 	
+ 	if (!(host->hostscope.allow_flags & DHCIFF_TEMP_ADDRS)) {
+ 		roptinfo->iaidinfo.renewtime = host->hostscope.renew_time;
+@@ -933,8 +931,8 @@
+ 			continue;
+ 		else {
+ 			for (link = ifnetwork->linklist; link; link = link->next) {
+-				/* without relay agent support, so far we assume
+-				 * that client and server on the same link, no relay
++				/* if relay is NULL, assume client and server are on the
++				 * same link (which cannot have a relay configuration option)
+ 				 */
+ 				struct v6addrlist *temp;
+ 				if (relay == NULL) {
+@@ -944,8 +942,11 @@
+ 						return link;
+ 				} else {
+ 					for (temp = link->relaylist; temp; temp = temp->next) {
+-						if (IN6_ARE_ADDR_EQUAL(relay, 
+-									&temp->v6addr.addr))
++						/* only compare the prefix configured to the relay
++						   link address */
++						if (!prefixcmp (relay, 
++									    &temp->v6addr.addr,
++						                temp->v6addr.plen))
+ 							return link;
+ 						else
+ 							continue;
+--- dhcp-0.10/server6_conf.c.rh	2004-03-15 17:03:52.000000000 -0500
++++ dhcp-0.10/server6_conf.c	2007-02-09 01:28:31.000000000 -0500
+@@ -40,8 +40,8 @@
+ #include <sys/socket.h>
+ #include <net/if.h>
+ //#include <openssl/md5.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -293,6 +293,8 @@
+ 		dhcp6_copy_list(&current->dnslist.addrlist, &up->dnslist.addrlist);
+ 	if (current->dnslist.domainlist == NULL)
+ 		current->dnslist.domainlist = up->dnslist.domainlist;
++	if ( current->use_ra_prefix )
++	    up->use_ra_prefix = 1;
+ 	return;
+ }
+ 
+--- dhcp-0.10/server6_conf.h.rh	2003-04-30 15:04:14.000000000 -0400
++++ dhcp-0.10/server6_conf.h	2007-02-09 01:28:31.000000000 -0500
+@@ -50,6 +50,7 @@
+ 	u_int8_t send_flags;
+ 	u_int8_t allow_flags;
+ 	struct dns_list dnslist;
++        u_int8_t use_ra_prefix;
+ };
+ 
+ struct scopelist {
+--- dhcp-0.10/server6_parse.y.rh	2004-02-04 19:10:31.000000000 -0500
++++ dhcp-0.10/server6_parse.y	2007-02-09 01:28:31.000000000 -0500
+@@ -33,14 +33,17 @@
+ 
+ %{
+ 
++#include <sys/types.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <syslog.h>
+ #include <errno.h>
++#include <netinet/in.h>
+ #include <sys/socket.h>
+ #include <net/if.h>
+-#include <linux/ipv6.h>
+-#include "queue.h"
++#include <malloc.h>
++#include <sys/queue.h>
++
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -104,6 +107,7 @@
+ %token	<str>	IAID IAIDINFO
+ %token  <str>	INFO_ONLY
+ %token	<str>	TO
++%token  <str>   USE_RA_PREFIX
+ 
+ %token	<str>	BAD_TOKEN
+ %type	<str>	name
+@@ -267,7 +271,6 @@
+ linkbody	
+ 	:  
+ 	| linkbody linkparams
+-	| relaylist 
+ 	;
+ 
+ linkparams	
+@@ -277,6 +280,7 @@
+ 	| hostdef
+ 	| groupdef
+ 	| confdecl
++	| relaylist
+ 	;
+ 
+ relaylist	
+@@ -900,6 +904,15 @@
+ 			dprintf(LOG_ERR, "%s" "bad server preference number", FNAME);
+ 		currentscope->scope->server_pref = $2;
+ 	}
++        | USE_RA_PREFIX ';'
++        {
++	       if (!currentscope) {
++			currentscope = push_double_list(currentscope, &globalgroup->scope);
++			if (currentscope == NULL)
++				ABORT;
++	       }
++	       currentscope->scope->use_ra_prefix = 1;
++	}
+ 	;
+ 
+ number_or_infinity
+--- dhcp-0.10/server6_token.l.rh	2003-07-16 15:09:53.000000000 -0400
++++ dhcp-0.10/server6_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -42,14 +42,19 @@
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
+ #include <net/if.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+ #include <server6_conf.h>
+ #include "sf.tab.h"
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ int num_lines = 1;
+ int sfyyerrorcount = 0;
+ int sfparse(char *filename);
+@@ -118,6 +123,7 @@
+ valid-life-time	 { return VALIDLIFETIME; }
+ prefer-life-time { return PREFERLIFETIME; }
+ server-preference { return PREFERENCE; }
++use-ra-prefix     { return USE_RA_PREFIX; }
+ 
+ to	{ return TO; }
+ infinity	{ return INFINITY; }
+--- dhcp-0.10/timer.c.rh	2003-03-11 18:52:23.000000000 -0500
++++ dhcp-0.10/timer.c	2007-02-09 01:28:31.000000000 -0500
+@@ -42,8 +42,8 @@
+ #if defined(__NetBSD__) || defined(__OpenBSD__)
+ #include <search.h>
+ #endif
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+--- dhcp-0.10/lease.c.rh	2004-03-03 15:11:16.000000000 -0500
++++ dhcp-0.10/lease.c	2007-02-09 01:28:31.000000000 -0500
+@@ -47,8 +47,8 @@
+ #include <net/if.h>
+ #include <linux/sockios.h>
+ #include <ifaddrs.h>
++#include <sys/queue.h>
+ 
+-#include "queue.h"
+ #include "dhcp6.h"
+ #include "hash.h"
+ #include "config.h"
+@@ -354,8 +354,8 @@
+ get_linklocal(const char *ifname,
+ 	      struct in6_addr *linklocal)
+ {	
+-	struct ifaddrs *ifa, *ifap;
+-	struct sockaddr *sd;
++	struct ifaddrs *ifa = 0, *ifap = 0;
++	struct sockaddr *sd = 0;
+ 	if (getifaddrs(&ifap) < 0) {
+ 		dprintf(LOG_ERR, "getifaddrs error");
+ 		return -1;
+--- dhcp-0.10/lease_token.l.rh	2004-02-04 18:29:24.000000000 -0500
++++ dhcp-0.10/lease_token.l	2007-02-09 01:28:31.000000000 -0500
+@@ -44,10 +44,10 @@
+ #include <errno.h>
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
+-
+ #include <net/if.h>
+ #include <linux/sockios.h>
+-#include "queue.h"
++#include <sys/queue.h>
++
+ #include "dhcp6.h"
+ #include "config.h"
+ #include "common.h"
+@@ -74,6 +74,11 @@
+ 	 (a & LEASE_IAID_FLAG) && (a & LEASE_RNTIME_FLAG) &&	\
+ 	 (a & LEASE_RBTIME_FLAG) && (a & LEASE_DUID_FLAG))
+ 
++#define YY_NO_UNPUT 1
++#define ECHO if (fwrite(yytext, yyleng, 1, yyout) != 1) { \
++                 YY_FATAL_ERROR("error performing ECHO on yytext"); \
++             }
++
+ #define YYABORT(msg) dprintf(LOG_ERR, msg " %s lineno %d.", \
+ 		yytext, num_lines)
+ 
+@@ -241,6 +246,8 @@
+ 	
+ 	fseek(file, 0, 0);
+ 	yyin = file;
++	yy_init = 1;
++	yy_start = 0;
+ 	yylex(); 
+ 	return;
+ }
+--- /dev/null	2007-02-06 10:40:24.955607220 -0500
++++ dhcp-0.10/Makefile.inc.in	2007-02-09 01:28:42.000000000 -0500
+@@ -0,0 +1,32 @@
++srcdir=	@srcdir@
++CFLAGS=	-fPIC -fno-strict-aliasing -fvisibility=hidden @CFLAGS@ @DEFS@
++LDFLAGS=@LDFLAGS@
++LIBOBJS=@LIBOBJS@
++LIBS=	@LIBS@
++CC=	@CC@
++YACC=	@YACC@
++LEX=	@LEX@
++DESTDIR ?=
++
++INSTALL=@INSTALL@
++INSTALL_PROGRAM=@INSTALL_PROGRAM@
++INSTALL_DATA=@INSTALL_DATA@
++INSTALL_USER ?= root
++INSTALL_GROUP ?= root
++prefix=	@prefix@
++exec_prefix=	@exec_prefix@
++bindir=	@bindir@
++sbindir=@sbindir@
++mandir=	@mandir@
++initdir=/etc/rc.d/init.d
++etc=/etc
++sysconfigdir=/etc/sysconfig
++CHKCONFIG=/sbin/chkconfig
++LIBDIR ?= /usr/lib
++INCLUDEDIR ?= /usr/include
++PKGCFGDIR ?= /usr/lib/pkgconfig
++
++CFLAGS+= -Wall -DCONF_DH6OPT_DNS_RESOLVERS=@dhcpopt_dns_resolvers@ \
++	-DCONF_DH6OPT_DOMAIN_LIST=@dhcpopt_domain_list@ \
++	-DCONF_DH6OPT_IA_PD=@dhcpopt_pdel@ \
++	-DCONF_DH6OPT_IAPREFIX=@dhcpopt_pinfo@ 

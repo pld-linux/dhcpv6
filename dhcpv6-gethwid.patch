@@ -1,0 +1,20 @@
+--- dhcp-0.10/common.c.gethwid	2007-02-16 15:26:02.000000000 -0500
++++ dhcp-0.10/common.c	2007-02-16 15:26:02.000000000 -0500
+@@ -819,11 +819,15 @@
+ 		close(skfd);
+ 		return -1;
+ 	}
+-	close(skfd);
+ 
+ 	strcpy(if_hwaddr.ifr_name, ifname);
+-	if (ioctl(skfd, SIOCGIFHWADDR, &if_hwaddr) < 0)
++	if (ioctl(skfd, SIOCGIFHWADDR, &if_hwaddr) < 0) {
++		close(skfd);
+ 		return -1;
++	}
++
++	close(skfd);
++
+ 	/* only support Ethernet */
+ 	switch (if_hwaddr.ifr_hwaddr.sa_family) {
+ 	case ARPHRD_ETHER:

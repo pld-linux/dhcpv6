@@ -1,0 +1,1087 @@
+--- dhcp-0.10/dhcp6c.conf.5.man	2003-03-28 15:16:36.000000000 -0500
++++ dhcp-0.10/dhcp6c.conf.5	2007-02-08 15:44:07.000000000 -0500
+@@ -1,202 +1,218 @@
+-.\" $Id$
+-.\"
+-.\" Copyright (C) International Business Machines  Corp., 2003
+-.\" All rights reserved.
+-.\"
+-.\" Redistribution and use in source and binary forms, with or without
+-.\" modification, are permitted provided that the following conditions
+-.\" are met:
+-.\" 1. Redistributions of source code must retain the above copyright
+-.\"    notice, this list of conditions and the following disclaimer.
+-.\" 2. Redistributions in binary form must reproduce the above copyright
+-.\"    notice, this list of conditions and the following disclaimer in the
+-.\"    documentation and/or other materials provided with the distribution.
+-.\" 3. Neither the name of the project nor the names of its contributors
+-.\"    may be used to endorse or promote products derived from this software
+-.\"    without specific prior written permission.
+-.\"
+-.\" THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+-.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+-.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+-.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+-.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+-.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+-.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+-.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+-.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+-.\" SUCH DAMAGE.
+-.\"
+-.TH dhcp6c.conf 5 "17 March 2003" "dhcp6c.conf" "Linux System Manager's Manual"
+-
+-.SH NAME
+-dhcp6c.conf \- configuration file of the DHCPv6 client daemon, dhcp6c
+-
+-.SH DESCRIPTION
+-.B dhcp6c.conf
+-is a configuration file for dhcp6c (DHCPv6 client).
+-
+-dhcp6c is configured by the configuration information (such as rapid-commit,
+-requesting temp-address, or prefix-delegation) in this file. 
+-dhcp6c.conf is an ASCII text file and lines that start with # are comments.
+-
+-.PP
+-.BI STATEMENTS
+-.PP
+-.nf
+-.B interface\ <interface\ name>
+-.B {
+-.B \t[declarations]
+-.B };
+-.fi
+-Write configurations for this interface in this statement.
+-In [declarations], options can be specified.
+-
+-.PP
+-.BI DECLARATIONS
+-.PP
+-.nf
+-.B send\ [dhcpoptions];
+-.fi
+-With this declaration, dhcp6c sends specified options.
+-Currently rapid\-commit is defined.
+-
+-.nf
+-\fIsend rapid\-commit;\fR
+-.fi
+-This declaration enables dhcp6c to request the dhcp6s server to perform a
+-Rapid Commit.
+-
+-.nf
+-.B request\ [dhcpoptions];
+-.fi
+-This declaration enables dhcp6c to request specified options.
+-Currently temp\-address, domain\-name\-servers, and prefix\-delegation
+-are defined.
+-
+-.nf
+-\fIrequest domain\-name\-servers;\fR
+-.fi
+-The DHCPv6 mechanism provides a way to obtain configuration information
+-such as a list of available DNS servers or NTP servers. This declaration
+-enables dhcp6c to request a DNS server address from the DHCPv6 server. 
+-
+-.nf
+-\fIrequest prefix\-delegation;\fR
+-.fi
+-This declaration enables dhcp6c to request a Prefix Delegation to the 
+-DHCPv6 server. dhcp6c gets a prefix assignment from the DHCPv6 server.
+-
+-.nf
+-\fIrequest temp\-address;\fR
+-.fi
+-This declaration enables dhcp6c to request temporary addresses.
+-dhcp6c requests Non-temporary Addresses as default. This option makes
+-dhcp6c request Temporary Addresses.
+-
+-.nf
+-.B information-only;
+-.fi
+-This declaration enables dhcp6c to request host configuration information
+-from the DHCPv6 server. If dhcp6c doesn't need to be assigned any addresses,
+-this option should be specified.
+-
+-.nf
+-.B address\ {
+-.B \t[<ipv6\ address>/<prefix\ length>];
+-.B \t[prefer-life-time\ <preferred\-lifetime>];
+-.B \t[valid-life-time\ <valid\-lifetime>];
+-.B };
+-.fi
+-This declaration defines the dhcp6c client preferred IPv6 address,
+-the preferred lifetime of the address, and the valid lifetime for this
+-interface.
+-
+-.nf
+-.B prefix\ {
+-.B \t[<ipv6\ prefix>/<prefix\ length>];
+-.B \t[prefer-life-time\ <preferred\-lifetime>];
+-.B \t[valid-life-time\ <valid\-lifetime>];
+-.B };
+-.fi
+-This declaration defines the dhcp6c client acting as a requesting
+-router for the preferred prefix, the prefix length, and the prefix's
+-preferred lifetime, and valid lifetime for this interface.
+-
+-.nf
+-.B prefer-life-time\ <preferred\-lifetime>;
+-.fi
+-This declaration sets the preferred lifetime (in seconds) of the address
+-or prefix. This declaration is valid only in address or prefix declarations.
+-
+-.nf
+-.B valid-life-time\ <valid\-lifetime>;
+-.fi
+-This declaration sets the valid lifetime (in seconds) of the address or
+-prefix.
+-This declaration is valid only in address or prefix declarations.
+-
+-.nf
+-.B renew-time\ <renew-time>;
+-.fi
+-This declaration specifies the Renew Time (in seconds) for this Identity
+-Association (IA). Renew Time is a T1 value in an IA option. dhcp6c sets the
+-Renew Time in IA options to the specified value.
+-
+-.nf
+-.B rebind-time\ <rebind-time>;
+-.fi
+-This declaration specifies the Rebind Time (in seconds) for this IA. Rebind
+-Time is T2 value in an IA option. dhcp6c sets the Rebind Time in IA options
+-to the specified value.
+-
+-.PP
+-.BI DHCPOPTIONS
+-.PP
+-.nf
+-.B rapid\-commit
+-.fi
+-If this option is used in a "send [dhcpoptions];" declaration, 
+-dhcp6c sends DHCPv6 messages with a Rapid Commit option.
+-
+-.nf
+-.B domain\-name\-servers
+-.fi
+-If this option is used in a "request [dhcpoptions];" declaration, 
+-dhcp6c requests the DNS server address via the DHCPv6 mechanism.
+-
+-.nf
+-.B prefix\-delegation
+-.fi
+-If this option is used in a "request [dhcpoptions];" declaration, 
+-dhcp6c requests a Prefix Delegation to the DHCPv6 servers.
+-
+-.SH EXAMPLES
+-.PP
+-This is a sample of the dhcp6c.conf file.
+-.nf
+-.B interface eth0 {
+-.B \tsend rapid-commit;
+-.B \trequest prefix-delegation;
+-.B \trequest domain-name-servers;
+-.B \trequest temp-address;
+-.B \tiaid 11111;
+-.B \taddress {
+-.B \t\t3ffe:10::10/64;
+-.B \t\tprefer-life-time 6000;
+-.B \t\tvalid-life-time 8000;
+-.B \t};
+-.B \trenew-time 11000;
+-.B \trebind-time 21000;
+-.B };
+-.fi
+-
+-.SH SEE ALSO
+-Dynamic Host Configuration Protocol for IPv6 (DHCPv6), IPv6 Prefix Options
+-for DHCPv6, dhcp6c(5)
+-
+-.SH AUTHORS
+-.LP
+-Kazuo Hiekata <hiekata@yamato.ibm.com>
+-
+-
++.\" $Id$
++.\"
++.\" Copyright (C) International Business Machines  Corp., 2003
++.\" All rights reserved.
++.\"
++.\" Redistribution and use in source and binary forms, with or without
++.\" modification, are permitted provided that the following conditions
++.\" are met:
++.\" 1. Redistributions of source code must retain the above copyright
++.\"    notice, this list of conditions and the following disclaimer.
++.\" 2. Redistributions in binary form must reproduce the above copyright
++.\"    notice, this list of conditions and the following disclaimer in the
++.\"    documentation and/or other materials provided with the distribution.
++.\" 3. Neither the name of the project nor the names of its contributors
++.\"    may be used to endorse or promote products derived from this software
++.\"    without specific prior written permission.
++.\"
++.\" THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
++.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
++.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++.\" SUCH DAMAGE.
++.\"
++.TH dhcp6c.conf 5 "17 March 2003" "dhcp6c.conf" "Linux System Manager's Manual"
++
++.SH NAME
++dhcp6c.conf \- configuration file of the DHCPv6 client daemon, dhcp6c
++
++.SH DESCRIPTION
++.B dhcp6c.conf
++is a configuration file for dhcp6c (DHCPv6 client).
++
++dhcp6c is configured by the configuration information (such as rapid-commit,
++requesting temp-address, or prefix-delegation) in this file. 
++dhcp6c.conf is an ASCII text file and lines that start with # are comments.
++
++.PP
++.BI STATEMENTS
++.PP
++.nf
++.B interface\ <interface\ name>
++.B {
++.B \t[declarations]
++.B };
++.fi
++Write configurations for this interface in this statement.
++In [declarations], options can be specified.
++
++.PP
++.BI DECLARATIONS
++.PP
++.nf
++.B send\ [dhcpoptions];
++.fi
++With this declaration, dhcp6c sends specified options.
++Currently rapid\-commit is defined.
++
++.nf
++\fIsend rapid\-commit;\fR
++.fi
++This declaration enables dhcp6c to request the dhcp6s server to perform a
++Rapid Commit.
++
++.nf
++.B request\ [dhcpoptions];
++.fi
++This declaration enables dhcp6c to request specified options.
++Currently temp\-address, domain\-name\-servers, and prefix\-delegation
++are defined.
++
++.nf
++\fIrequest domain\-name\-servers;\fR
++.fi
++The DHCPv6 mechanism provides a way to obtain configuration information
++such as a list of available DNS servers or NTP servers. This declaration
++enables dhcp6c to request a DNS server address from the DHCPv6 server. 
++
++.nf
++\fIrequest prefix\-delegation;\fR
++.fi
++This declaration enables dhcp6c to request a Prefix Delegation to the 
++DHCPv6 server. dhcp6c gets a prefix assignment from the DHCPv6 server.
++
++.nf
++\fIrequest temp\-address;\fR
++.fi
++This declaration enables dhcp6c to request temporary addresses.
++dhcp6c requests Non-temporary Addresses as default. This option makes
++dhcp6c request Temporary Addresses.
++
++.nf
++.B information-only;
++.fi
++This declaration enables dhcp6c to request host configuration information
++from the DHCPv6 server. If dhcp6c doesn't need to be assigned any addresses,
++this option should be specified.
++
++.nf
++.B address\ {
++.B \t[<ipv6\ address>/<prefix\ length>];
++.B \t[prefer-life-time\ <preferred\-lifetime>];
++.B \t[valid-life-time\ <valid\-lifetime>];
++.B };
++.fi
++This declaration defines the dhcp6c client preferred IPv6 address,
++the preferred lifetime of the address, and the valid lifetime for this
++interface.
++
++.nf
++.B prefix\ {
++.B \t[<ipv6\ prefix>/<prefix\ length>];
++.B \t[prefer-life-time\ <preferred\-lifetime>];
++.B \t[valid-life-time\ <valid\-lifetime>];
++.B };
++.fi
++This declaration defines the dhcp6c client acting as a requesting
++router for the preferred prefix, the prefix length, and the prefix's
++preferred lifetime, and valid lifetime for this interface.
++
++.nf
++.B prefer-life-time\ <preferred\-lifetime>;
++.fi
++This declaration sets the preferred lifetime (in seconds) of the address
++or prefix. This declaration is valid only in address or prefix declarations.
++
++.nf
++.B valid-life-time\ <valid\-lifetime>;
++.fi
++This declaration sets the valid lifetime (in seconds) of the address or
++prefix.
++This declaration is valid only in address or prefix declarations.
++
++.nf
++.B renew-time\ <renew-time>;
++.fi
++This declaration specifies the Renew Time (in seconds) for this Identity
++Association (IA). Renew Time is a T1 value in an IA option. dhcp6c sets the
++Renew Time in IA options to the specified value.
++
++.nf
++.B rebind-time\ <rebind-time>;
++.fi
++This declaration specifies the Rebind Time (in seconds) for this IA. Rebind
++Time is T2 value in an IA option. dhcp6c sets the Rebind Time in IA options
++to the specified value.
++
++.PP
++.BI DHCPOPTIONS
++.PP
++.nf
++.B rapid\-commit
++.fi
++If this option is used in a "send [dhcpoptions];" declaration, 
++dhcp6c sends DHCPv6 messages with a Rapid Commit option.
++
++.nf
++.B domain\-name\-servers
++.fi
++If this option is used in a "request [dhcpoptions];" declaration, 
++dhcp6c requests the DNS server address via the DHCPv6 mechanism.
++
++.nf
++.B prefix\-delegation
++.fi
++If this option is used in a "request [dhcpoptions];" declaration, 
++dhcp6c requests a Prefix Delegation to the DHCPv6 servers.
++
++.nf
++.B prefix\-delegation\-interface <interface name>
++Specifies the name of the interface definition in radvd.conf 
++that dhcp6c will write the 'prefix' declaration for. By default,
++dhcp6c will write a radvd.conf prefix declaration for the interface
++on which it receives the prefix delegation lease.
++
++.nf
++\fIuse-ra-prefix;\fR
++.fi
++This declaration tells the client not to request the address prefix configured
++in the server's address or range statements. With this option, client address
++prefixes can be set only by router advertisements, and the prefix configured in
++server address or range statements will be ignored. This is a Red Hat extension;
++previously, the only way to set client address prefixes was by router advertisement.
++
++.SH EXAMPLES
++.PP
++This is a sample of the dhcp6c.conf file.
++.nf
++.B interface eth0 {
++.B \tsend rapid-commit;
++.B \trequest prefix-delegation;
++.B \trequest domain-name-servers;
++.B \trequest temp-address;
++.B \tiaid 11111;
++.B \taddress {
++.B \t\t3ffe:10::10/64;
++.B \t\tprefer-life-time 6000;
++.B \t\tvalid-life-time 8000;
++.B \t};
++.B \trenew-time 11000;
++.B \trebind-time 21000;
++.B };
++.fi
++
++.SH SEE ALSO
++Dynamic Host Configuration Protocol for IPv6 (DHCPv6), IPv6 Prefix Options
++for DHCPv6, dhcp6c(5)
++
++.SH AUTHORS
++.LP
++Kazuo Hiekata <hiekata@yamato.ibm.com>
++
++
+--- dhcp-0.10/dhcp6s.conf.5.man	2003-05-28 18:56:23.000000000 -0400
++++ dhcp-0.10/dhcp6s.conf.5	2007-02-08 15:44:07.000000000 -0500
+@@ -1,322 +1,340 @@
+-.\" $Id$
+-.\"
+-.\" Copyright (C) International Business Machines  Corp., 2003
+-.\" All rights reserved.
+-.\"
+-.\" Redistribution and use in source and binary forms, with or without
+-.\" modification, are permitted provided that the following conditions
+-.\" are met:
+-.\" 1. Redistributions of source code must retain the above copyright
+-.\"    notice, this list of conditions and the following disclaimer.
+-.\" 2. Redistributions in binary form must reproduce the above copyright
+-.\"    notice, this list of conditions and the following disclaimer in the
+-.\"    documentation and/or other materials provided with the distribution.
+-.\" 3. Neither the name of the project nor the names of its contributors
+-.\"    may be used to endorse or promote products derived from this software
+-.\"    without specific prior written permission.
+-.\"
+-.\" THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+-.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+-.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+-.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+-.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+-.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+-.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+-.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+-.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+-.\" SUCH DAMAGE.
+-.\"
+-.TH dhcp6s.conf 5 "17 March 2003" "dhcp6s.conf" "Linux System Manager's Manual"
+-
+-.SH NAME
+-dhcp6s.conf \- configuration file of the DHCPv6 server daemon, dhcp6s
+-
+-.SH DESCRIPTION
++.\" $Id$
++.\"
++.\" Copyright (C) International Business Machines  Corp., 2003
++.\" All rights reserved.
++.\"
++.\" Redistribution and use in source and binary forms, with or without
++.\" modification, are permitted provided that the following conditions
++.\" are met:
++.\" 1. Redistributions of source code must retain the above copyright
++.\"    notice, this list of conditions and the following disclaimer.
++.\" 2. Redistributions in binary form must reproduce the above copyright
++.\"    notice, this list of conditions and the following disclaimer in the
++.\"    documentation and/or other materials provided with the distribution.
++.\" 3. Neither the name of the project nor the names of its contributors
++.\"    may be used to endorse or promote products derived from this software
++.\"    without specific prior written permission.
++.\"
++.\" THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
++.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
++.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++.\" SUCH DAMAGE.
++.\"
++.TH dhcp6s.conf 5 "17 March 2003" "dhcp6s.conf" "Linux System Manager's Manual"
++
++.SH NAME
++dhcp6s.conf \- configuration file of the DHCPv6 server daemon, dhcp6s
++
++.SH DESCRIPTION
+ .B dhcp6s.conf
+-contains the configuration information of addresses, prefixes, or
+-various network configuration parameters for each of the interfaces. 
+-The network configuration parameters can be described globally for all of 
+-the interfaces. The default address preferred life time is 36000 seconds; 
+-the default address valid life time is 72000 seconds if they are not defined
+-in any declaration. The specific declaration order is interface, link, host;
+-within link the more specific declaration is pool.
+-
+- The interface definitions are described in the following form:
+-.PP
+-.nf
+-.B \tinterface\ <interface\ name>
+-.B \t{
+-.B \t\t[declarations];
+-.B \t};
+-.fi
+- where each of the declarations could be of type link, group, or host. 
+-Each declaration and the statements within each of these declarations 
+-must be terminated by a semicolon. Additional details of the declarations 
+-are specified below.
+-
+-.PP
+-.BI DECLARATIONS
+-.PP
+-.nf
+-.B interface\ <interface\ name>
+-.B {
+-.B \t[declarations];
+-.B };
+-.fi
+-An interface declaration is used to inform the DHCPv6 server that the links and
+-hosts declared within it are connected to the same network segment. Common
+-network parameters for this network segment can be defined within the interface
+-declaration.
+-
+-.nf
+-.B link\ <link\ name>
+-.B {
+-.B \t[declarations];
+-.B };
+-.fi
+-A link declaration is used to provide the DHCPv6 server  the IPv6 assgined
+-address ranges, prefixes, and hosts. Common network parameters for this link 
+-can be defined within the link declaration.
+-
+-.nf
+-.B group
+-.B {
+-.B \t[declarations];
+-.B };
+-.fi
+-A group declaration is used to group a list of declarations together to define
+-the common network parameters. These network parameters are valid within this
+-declaration only. Declarations can be one of the following types: interface, link,
+-pool, or host.
+-
+-.nf
+-.B pool
+-.B {
+-.B \t[declarations];
+-.B };
+-.fi
+-The pool declaration is used to declare an address pool from which IPv6
+-address can be allocated, with its own permit to control client access
+-and its own declaration in which you can declare pool-specific network parameters.
+-
+-.nf
+-.B host\ <host\ name>
+-.B {
+-.B \t[duid\ <DUID\n>];
+-.B \t[iaidinfo\ {}];
+-.B \t[address\ {}];
+-.B \t[prefix\ <prefix>/<prefix\ length>];
+-.B \t[declarations];
+-.B };
+-.fi
+-This declaration allows administrators to describe the addresses, prefixes, and
+-network configuration parameters for this  host. As for this declaration, the
+-DHCP Unique Identifier (DUID), Identity Association Identifier (IAID), and 
+-addresses must be specified. The host declaration is used to do Static
+-Address Assginment for a particular DHCPv6 client. 
+-
+-.nf
+-.B address
+-.B {
+-.B \t[<ipv6 address>/<prefix length>];
+-.B \t[prefer-life-time\ <preferred\ lifetime>];
+-.B \t[valid-life-time\ <valid\ lifetime>];
+-.B };
+-.fi
+-This statement allows administrators to specify the address for the 
+-host. Preferred Lifetime and Valid Lifetime also can be set in this
+-statement. This statement is valid only in host {} declarations.
+-
+-.nf
+-.B prefix\ <prefix>/<prefix\ length>;
+-.fi
+-This statement allows administrators to specify the prefix.
+-This parameter is needed when configuring dhcp6s as the Delegation Router for
+-the Prefix Delegation. dhcp6s assigns the specified prefixes 
+-to the requesting routers.
+-
+-.nf
+-.B iaidinfo
+-.B {
+-.B \t[iaid\ <IAID\ number>];
+-.B \t[renew-time\ <renew\ time>];
+-.B \t[rebind-time\ <rebind\ time>];
+-.B };
+-.fi
+-This statement allows administrators to describe the information for 
+-this IAID. This statement is only valid in host {} declarations.
+-iaid is required; renew-time and rebind time are optional in this statement.
+-
+-.nf
+-.B range\ <ipv6\ address>\ to\ <ipv6\ address>/<prefix\ length>;
+-.fi
+-This statement allows adminstrators to use "range" and "to" keywords and
+-prefix length to specify an address range.
+-For each range not more than one of the unassigned addresses will be
+-assgined to the requested client.
+-
+-.nf
+-.B duid\ <DUID\>;
+-.fi
+-DUID is a DHCP Unique Identifier for a DHCP participant. Using this option,
+-the administrator can specify the DUID of this DHCPv6 client.
+-The duid statement is valid only in host {} declarations.
+-
+-.nf
+-.BI iaid\ <IAID\ number>;
+-.fi
+-IAID is a Identity Association Identifier. IA is a collection of addresses
+-assigned to a client. Using this option, the administrator can specify the IAID
+-in iaidinfo for a host declaration.
+-
+-.nf
+-.BI renew-time\ <renew\ time>;
+-.fi
+-This statement allows administrators to specify the RenewTime (T1).
+-The recommended value for RenewTime is .5 times the shortest preferred
+-lifetime of the address in the IA, if the value is not defined.
+-
+-.nf
+-.BI rebind-time\ <rebind\ time>;
+-.fi
+-This statement allows administrators to specify the RebindTime (T2).
+-The recommended value for RenewTime is .8 times the shortest preferred 
+-lifetime of the address in the IA, if the value is not defined.
+-
+-.nf
+-.BI prefer-life-time\ <preferred\ lifetime>;
+-.fi
+-This statement allows administrators to specify the Preferred Life Time for 
+-each address.
+-
+-.nf
+-.BI valid-life-time\ <valid\ lifetime>;
+-.fi
+-This statement allows administrators to specify the Valid Life Time for 
+-each address.
+-
+-.nf
+-.BI option\ dns_server\ <ipv6\ addresses\ or\ domain\ name\ list>;
+-.fi
+-This statement allows administrators to specify the DNS servers.
+-
+-.B send\ <OPTION>;
+-.fi
+-This declaration enables dhcp6s to include the specified option in sending 
+-DHCPv6 messages.
+-
+-.nf
+-\fIsend\ unicast;\fR
+-.fi
+-This declaration enables dhcp6s to send a Server Unicast option. Usually
+-DHCPv6 clients must use multicast addresses to contact the DHCPv6 server and
+-agents. This declaration specifies that dhcp6s will accept unicast messages
+-from DHCPv6 clients if they include a Server Unicast option.
+-
+-.nf
+-\fIsend\ server-preference\ <server\ preference\ value>;\fR
+-.fi
+-This declaration enables dhcp6s to include a Preference option for sending
+-DHCPv6 messages. DHCPv6 clients will pick up the DHCPv6 server which has
+-highest preference value. The highest preference value is 255.
+-
+-.nf
+-\fIsend\ temp-address;\fR
+-.fi
+-This declaration assigns a temporary address to the requesting client.
+-
+-.nf
+-\fIsend\ information-only;\fR
+-.fi
+-This option enables dhcp6s to give only configuration information rather than
+-assigning client addresses. This could be, for example, DNS server address
+-configuration information.
+-
+-.nf
+-.B allow\ <OPTION>;
+-.fi
+-This declaration allows the DHCPv6 client to specify an option in receiving
+-DHCPv6 messages.
+-
+-.nf
+-\fIallow rapid\-commit;\fR
+-.fi
+-This option enables dhcp6s to allow the Rapid-Commit option from the DHCPv6
+-client and the Solicit-Reply message exchanges.
+-
+-.nf
+-\fIallow\ unicast;\fR
+-.fi
+-This option enables dhcp6s to allow the Server Unicast option for the DHCPv6
+-client. Usually DHCPv6 clients must use multicast addresses to contact DHCPv6
+-server and agents. With this declaration, dhcp6s accepts unicast 
+-messages from DHCPv6 clients if they include a Server Unicast option.
+-
+-.SH EXAMPLES
+-.PP
+-This is a sample of the dhcp6s.conf file.
+-.nf
+-.B option dns\_server 2003::6:1 ibm.com;
+-.B prefer\-life\-time 10000;
+-.B valid\-life\-time 20000;
+-.B renew\-time 5000;
+-.B rebind\-time 8000;
+-.B interface eth1 {
+-.B \tlink AAA {
+-.B \t\tallow unicast;
+-.B \t\tsend unicast;
+-.B \t\tallow rapid-commit;
+-.B \t\tsend server-preference 5;
+-.B \t\trenew-time 1000;
+-.B \t\trebind-time 2400;
+-.B \t\tprefer-life-time 2000;
+-.B \t\tvalid-life-time 3000;
+-.B \t\trange 3ffe:ffff:100::10 to 3ffe:ffff:100::110/64;
+-.B \t\tprefix 3ffe:ffef:104::/64;
+-.B \t\tpool {
+-.B \t\t\tprefer\-life\-time 3600;
+-.B \t\t\tvalid\-life\-time 7200;
+-.B \t\t\trange fec0:ffff::10 to fec0:ffff::110/64;
+-.B \t\t\tprefix fec0:fffe::/48;
+-.B \t\t};
+-.B \t};
+-.B \thost host0 {
+-.B \t\tduid 00:00:00:00:a0:a0;
+-.B \t\tiaidinfo {
+-.B \t\t\tiaid 101010;
+-.B \t\t\trenew-time 1000;
+-.B \t\t\trebind-time 2000;
+-.B \t\t};
+-.B \t\taddress {
+-.B \t\t\t3ffe:ffff:102::120/64;
+-.B \t\t\tprefer-life-time 2000;
+-.B \t\t\tvalid-life-time 3000;
+-.B \t\t};
+-.B \t};
+-.B \tgroup {
+-.B \t\tprefer\-life\-time 5000;
+-.B \t\tvalid\-life\-time 6000;
+-.B \t\thost host1 {
+-.B \t\t\tduid 00:00:00:00:a1:a1;
+-.B \t\t\tiaidinfo {
+-.B \t\t\t\tiaid 101011;
+-.B \t\t\t\trenew-time 1000;
+-.B \t\t\t\trebind-time 2000;
+-.B \t\t\t};
+-.B \t\t};
+-.B \t\thost host2 {
+-.B \t\t\tduid 00:00:00:00:a2:a2;
+-.B \t\t\tsend information-only;
+-.B \t\t};
+-.B \t};
+-.B };
+-.fi
+-
+-.SH SEE ALSO
+-Dynamic Host Configuration Protocol for IPv6 (DHCPv6), IPv6 Prefix Options
+-for DHCPv6, dhcp6s(5)
+-
+-.SH AUTHORS
+-.LP
+-Kazuo Hiekata <hiekata@yamato.ibm.com>
++contains the configuration information of addresses, prefixes, or
++various network configuration parameters for each of the interfaces. 
++The network configuration parameters can be described globally for all of 
++the interfaces. The default address preferred life time is 36000 seconds; 
++the default address valid life time is 72000 seconds if they are not defined
++in any declaration. The specific declaration order is interface, link, host;
++within link the more specific declaration is pool.
++
++ The interface definitions are described in the following form:
++.PP
++.nf
++.B \tinterface\ <interface\ name>
++.B \t{
++.B \t\t[declarations];
++.B \t};
++.fi
++ where each of the declarations could be of type link, group, or host. 
++Each declaration and the statements within each of these declarations 
++must be terminated by a semicolon. Additional details of the declarations 
++are specified below.
++
++.PP
++.BI DECLARATIONS
++.PP
++.nf
++.B interface\ <interface\ name>
++.B {
++.B \t[declarations];
++.B };
++.fi
++An interface declaration is used to inform the DHCPv6 server that the links and
++hosts declared within it are connected to the same network segment. Common
++network parameters for this network segment can be defined within the interface
++declaration.
++
++.nf
++.B link\ <link\ name>
++.B {
++.B \t[declarations];
++.B };
++.fi
++A link declaration is used to provide the DHCPv6 server  the IPv6 assgined
++address ranges, prefixes, and hosts. Common network parameters for this link 
++can be defined within the link declaration.
++
++.nf
++.B group
++.B {
++.B \t[declarations];
++.B };
++.fi
++A group declaration is used to group a list of declarations together to define
++the common network parameters. These network parameters are valid within this
++declaration only. Declarations can be one of the following types: interface, link,
++pool, or host.
++
++.nf
++.B pool
++.B {
++.B \t[declarations];
++.B };
++.fi
++The pool declaration is used to declare an address pool from which IPv6
++address can be allocated, with its own permit to control client access
++and its own declaration in which you can declare pool-specific network parameters.
++
++.nf
++.B host\ <host\ name>
++.B {
++.B \t[duid\ <DUID\n>];
++.B \t[iaidinfo\ {}];
++.B \t[address\ {}];
++.B \t[prefix\ <prefix>/<prefix\ length>];
++.B \t[declarations];
++.B };
++.fi
++This declaration allows administrators to describe the addresses, prefixes, and
++network configuration parameters for this  host. As for this declaration, the
++DHCP Unique Identifier (DUID), Identity Association Identifier (IAID), and 
++addresses must be specified. The host declaration is used to do Static
++Address Assginment for a particular DHCPv6 client. 
++
++.nf
++.B address
++.B {
++.B \t[<ipv6 address>/<prefix length>];
++.B \t[prefer-life-time\ <preferred\ lifetime>];
++.B \t[valid-life-time\ <valid\ lifetime>];
++.B };
++.fi
++This statement allows administrators to specify the address for the 
++host. Preferred Lifetime and Valid Lifetime also can be set in this
++statement. This statement is valid only in host {} declarations.
++
++.nf
++.B prefix\ <prefix>/<prefix\ length>;
++.fi
++This statement allows administrators to specify the prefix.
++This parameter is needed when configuring dhcp6s as the Delegation Router for
++the Prefix Delegation. dhcp6s assigns the specified prefixes 
++to the requesting routers.
++
++.nf
++.B relay\ <relay>/<prefix\ length>;
++.fi
++This statement specifies the prefix that the relay agent will put in the link
++address field of the RELAY-FORW message to indicate the link the client is
++attached to. If the link-address matches this prefix, this link declaration
++will be used. This statement is only valid in the link declaration.
++
++.nf
++.B iaidinfo
++.B {
++.B \t[iaid\ <IAID\ number>];
++.B \t[renew-time\ <renew\ time>];
++.B \t[rebind-time\ <rebind\ time>];
++.B };
++.fi
++This statement allows administrators to describe the information for 
++this IAID. This statement is only valid in host {} declarations.
++iaid is required; renew-time and rebind time are optional in this statement.
++
++.nf
++.B range\ <ipv6\ address>\ to\ <ipv6\ address>/<prefix\ length>;
++.fi
++This statement allows adminstrators to use "range" and "to" keywords and
++prefix length to specify an address range.
++For each range not more than one of the unassigned addresses will be
++assgined to the requested client.
++
++.nf
++.B duid\ <DUID\>;
++.fi
++DUID is a DHCP Unique Identifier for a DHCP participant. Using this option,
++the administrator can specify the DUID of this DHCPv6 client.
++The duid statement is valid only in host {} declarations.
++
++.nf
++.BI iaid\ <IAID\ number>;
++.fi
++IAID is a Identity Association Identifier. IA is a collection of addresses
++assigned to a client. Using this option, the administrator can specify the IAID
++in iaidinfo for a host declaration.
++
++.nf
++.BI renew-time\ <renew\ time>;
++.fi
++This statement allows administrators to specify the RenewTime (T1).
++The recommended value for RenewTime is .5 times the shortest preferred
++lifetime of the address in the IA, if the value is not defined.
++
++.nf
++.BI rebind-time\ <rebind\ time>;
++.fi
++This statement allows administrators to specify the RebindTime (T2).
++The recommended value for RenewTime is .8 times the shortest preferred 
++lifetime of the address in the IA, if the value is not defined.
++
++.nf
++.BI prefer-life-time\ <preferred\ lifetime>;
++.fi
++This statement allows administrators to specify the Preferred Life Time for 
++each address.
++
++.nf
++.BI valid-life-time\ <valid\ lifetime>;
++.fi
++This statement allows administrators to specify the Valid Life Time for 
++each address.
++
++.nf
++.BI option\ dns_server\ <ipv6\ addresses\ or\ domain\ name\ list>;
++.fi
++This statement allows administrators to specify the DNS servers.
++
++.B send\ <OPTION>;
++.fi
++This declaration enables dhcp6s to include the specified option in sending 
++DHCPv6 messages.
++
++.nf
++\fIsend\ unicast;\fR
++.fi
++This declaration enables dhcp6s to send a Server Unicast option. Usually
++DHCPv6 clients must use multicast addresses to contact the DHCPv6 server and
++agents. This declaration specifies that dhcp6s will accept unicast messages
++from DHCPv6 clients if they include a Server Unicast option.
++
++.nf
++\fIserver-preference\ <server\ preference\ value>;\fR
++.fi
++This declaration enables dhcp6s to include a Preference option for sending
++DHCPv6 messages. DHCPv6 clients will pick up the DHCPv6 server which has
++highest preference value. The highest preference value is 255.
++
++.nf
++\fIsend\ temp-address;\fR
++.fi
++This declaration assigns a temporary address to the requesting client.
++
++.nf
++\fIsend\ information-only;\fR
++.fi
++This option enables dhcp6s to give only configuration information rather than
++assigning client addresses. This could be, for example, DNS server address
++configuration information.
++
++.nf
++.B allow\ <OPTION>;
++.fi
++This declaration allows the DHCPv6 client to specify an option in receiving
++DHCPv6 messages.
++
++.nf
++\fIallow rapid\-commit;\fR
++.fi
++This option enables dhcp6s to allow the Rapid-Commit option from the DHCPv6
++client and the Solicit-Reply message exchanges.
++
++.nf
++\fIallow\ unicast;\fR
++.fi
++This option enables dhcp6s to allow the Server Unicast option for the DHCPv6
++client. Usually DHCPv6 clients must use multicast addresses to contact DHCPv6
++server and agents. With this declaration, dhcp6s accepts unicast 
++messages from DHCPv6 clients if they include a Server Unicast option.
++
++
++.nf
++\fIuse-ra-prefix;\fR
++.fi
++This declaration tells the server not to send clients the address prefix configured
++in address or range statements. With this option, client address prefixes can
++be set only by router advertisements, and the prefix configured in address or
++range statements will be ignored. This is a Red Hat extension; previously, the
++only way to set client address prefixes was by router advertisement.
++
++.SH EXAMPLES
++.PP
++This is a sample of the dhcp6s.conf file.
++.nf
++.B option dns\_server 2003::6:1 ibm.com;
++.B prefer\-life\-time 10000;
++.B valid\-life\-time 20000;
++.B renew\-time 5000;
++.B rebind\-time 8000;
++.B interface eth1 {
++.B \tlink AAA {
++.B \t\tallow unicast;
++.B \t\tsend unicast;
++.B \t\tallow rapid-commit;
++.B \t\tserver-preference 5;
++.B \t\trenew-time 1000;
++.B \t\trebind-time 2400;
++.B \t\tprefer-life-time 2000;
++.B \t\tvalid-life-time 3000;
++.B \t\trange 3ffe:ffff:100::10 to 3ffe:ffff:100::110/64;
++.B \t\tprefix 3ffe:ffef:104::/64;
++.B \t\tpool {
++.B \t\t\tprefer\-life\-time 3600;
++.B \t\t\tvalid\-life\-time 7200;
++.B \t\t\trange fec0:ffff::10 to fec0:ffff::110/64;
++.B \t\t\tprefix fec0:fffe::/48;
++.B \t\t};
++.B \t};
++.B \thost host0 {
++.B \t\tduid 00:00:00:00:a0:a0;
++.B \t\tiaidinfo {
++.B \t\t\tiaid 101010;
++.B \t\t\trenew-time 1000;
++.B \t\t\trebind-time 2000;
++.B \t\t};
++.B \t\taddress {
++.B \t\t\t3ffe:ffff:102::120/64;
++.B \t\t\tprefer-life-time 2000;
++.B \t\t\tvalid-life-time 3000;
++.B \t\t};
++.B \t};
++.B \tgroup {
++.B \t\tprefer\-life\-time 5000;
++.B \t\tvalid\-life\-time 6000;
++.B \t\thost host1 {
++.B \t\t\tduid 00:00:00:00:a1:a1;
++.B \t\t\tiaidinfo {
++.B \t\t\t\tiaid 101011;
++.B \t\t\t\trenew-time 1000;
++.B \t\t\t\trebind-time 2000;
++.B \t\t\t};
++.B \t\t};
++.B \t\thost host2 {
++.B \t\t\tduid 00:00:00:00:a2:a2;
++.B \t\t\tsend information-only;
++.B \t\t};
++.B \t};
++.B };
++.fi
++
++.SH SEE ALSO
++Dynamic Host Configuration Protocol for IPv6 (DHCPv6), IPv6 Prefix Options
++for DHCPv6, dhcp6s(5)
++
++.SH AUTHORS
++.LP
++Kazuo Hiekata <hiekata@yamato.ibm.com>
