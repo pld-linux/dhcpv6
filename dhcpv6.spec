@@ -24,6 +24,7 @@ Patch3:		%{name}-gethwid.patch
 Patch4:		%{name}-no-strlcat.patch
 Patch5:		%{name}-libdhcp6client.patch
 URL:		http://dhcpv6.sourceforge.net/
+BuildRequires:	autoconf
 BuildRequires:	bison
 BuildRequires:	flex
 Requires(post,preun):	/sbin/chkconfig
