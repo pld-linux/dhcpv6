@@ -68,6 +68,7 @@ znajduje się w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 
 %package -n libdhcp6client
 Summary:	The DHCPv6 client in a library for invocation by other programs
+Summary(pl.UTF-8):	Klient DHCPv6 w postaci biblioteki do wykorzystania w innych programach
 Group:		Development/Libraries
 
 %description -n libdhcp6client
@@ -75,19 +76,35 @@ Provides the client for the DHCPv6 protocol (RFC 3315) to support
 dynamic configuration of IPv6 addresses and parameters, in a library
 for invocation by other programs.
 
+%description -n libdhcp6client -l pl.UTF-8
+Ten pakiet zawiera klienta protokołu DHCPv6 (RFC 3315) do obsługi
+dynamicznej konfiguracji adresów i parametrów IPv6 w postaci
+biblioteki do wykorzystania w innych programach.
+
 %package -n libdhcp6client-devel
 Summary:	Header files for development with the DHCPv6 client library
+Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCPv6
 Group:		Development/Libraries
+Requires:	libdhcp6client = %{epoch}:%{version}-%{release}
 
 %description -n libdhcp6client-devel
 Header files for development with the DHCPv6 client library.
 
+%description -n libdhcp6client-devel -l pl.UTF-8
+Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej
+DHCPv6.
+
 %package -n libdhcp6client-static
 Summary:	Static DHCPv6 client library
+Summary(pl.UTF-8):	Statyczna biblioteka kliencka DHCPv6
 Group:		Development/Libraries
+Requires:	libdhcp6client-devel = %{epoch}:%{version}-%{release}
 
 %description -n libdhcp6client-static
 Static DHCPv6 client library.
+
+%description -n libdhcp6client-static -l pl.UTF-8
+Statyczna biblioteka kliencka DHCPv6.
 
 %prep
 %setup -q -n dhcp-%{version}
@@ -108,8 +125,7 @@ sed 's/@DHCPV6_VERSION@/'%{version}'/' < %{SOURCE3} > libdhcp6client.pc
 
 %build
 %{__autoconf}
-%configure \
-	 \
+%configure
 
 %{__make}
 %{__make} -C libdhcp6client
@@ -169,7 +185,6 @@ fi
 %{_mandir}/man8/dhcp6relay.8*
 %{_mandir}/man5/dhcp6s.conf.5*
 
-
 %files -n dhcpv6-client
 %defattr(644,root,root,755)
 %doc ReadMe dhcp6c.conf
@@ -186,9 +201,9 @@ fi
 
 %files -n libdhcp6client-devel
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libdhcp6client.so
 %{_includedir}/*
 %{_pkgconfigdir}/libdhcp6client.pc
-%attr(755,root,root) %{_libdir}/libdhcp6client.so
 
 %files -n libdhcp6client-static
 %defattr(644,root,root,755)
