@@ -8,7 +8,7 @@ Name:		dhcpv6
 Version:	1.0.3
 Release:	0.9
 Epoch:		1
-License:	GPL
+License:	GPL v2+
 Group:		Networking/Daemons
 Source0:	http://dcantrel.fedorapeople.org/dhcpv6/%{name}-%{version}.tar.gz
 # Source0-md5:	7af9760efa2cb2796f75e9911c569054
@@ -16,9 +16,11 @@ Source1:	dhcp6s.init
 Source2:	dhcp6c.init
 Patch0:		%{name}-configure.patch
 URL:		http://dhcpv6.sourceforge.net/
-BuildRequires:	autoconf
+BuildRequires:	autoconf >= 2.61
+BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	flex
+BuildRequires:	libtool
 Requires(post,preun):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -61,7 +63,7 @@ znajduje się w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
 %package -n libdhcp6client
 Summary:	The DHCPv6 client in a library for invocation by other programs
 Summary(pl.UTF-8):	Klient DHCPv6 w postaci biblioteki do wykorzystania w innych programach
-Group:		Development/Libraries
+Group:		Libraries
 
 %description -n libdhcp6client
 Provides the client for the DHCPv6 protocol (RFC 3315) to support
@@ -140,6 +142,9 @@ if [ "$1" -ge "1" ]; then
 	/etc/rc.d/init.d/dhcp6s restart >/dev/null 2>&1
 fi
 
+%post	-n libdhcp6client -p /sbin/ldconfig
+%postun	-n libdhcp6client -p /sbin/ldconfig
+
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS README TODO docs/*
@@ -157,7 +162,7 @@ fi
 
 %files -n dhcpv6-client
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_sbindir}/dhcp6c
+%attr(755,root,root) %{_sbindir}/dhcp6c
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6c
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/dhcp6c.conf
 %{_mandir}/man8/dhcp6c.8*
@@ -165,13 +170,14 @@ fi
 
 %files -n libdhcp6client
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp6client-*.so.*
+%attr(755,root,root) %{_libdir}/libdhcp6client-*.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libdhcp6client-*.so.2
 
 %files -n libdhcp6client-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libdhcp6client.so
 %{_libdir}/libdhcp6client.la
-%{_includedir}/*
+%{_includedir}/dhcp6client
 %{_pkgconfigdir}/libdhcp6client.pc
 
 %files -n libdhcp6client-static
