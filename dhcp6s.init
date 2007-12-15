@@ -11,6 +11,7 @@
 # config: /etc/dhcp6s.conf
 # config: /etc/server6_addr.conf
 # config: /etc/sysconfig/dhcp6s
+
 # Source function library
 . /etc/rc.d/init.d/functions
 
@@ -23,7 +24,7 @@
 # Check that networking is up.
 if is_yes "${NETWORKING}"; then
 	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
-		msg_network_down DHCP6S
+		msg_network_down "DHCPv6 server daemon"
 		exit 1
 	fi
 else
@@ -33,22 +34,22 @@ fi
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dhcp6s ]; then
-		msg_starting "DHCP6S"
+		msg_starting "DHCPv6 server daemon"
 		daemon dhcp6s $DHCP6SIF
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dhcp6s
 	else
-		msg_already_running DHCP6S
+		msg_already_running "DHCPv6 server daemon"
 	fi
 }
 
 stop() {
 	if [ -f /var/lock/subsys/dhcp6s ]; then
-		msg_stopping "DHCP6S Server"
+		msg_stopping "DHCPv6 server daemon"
 		killproc dhcp6s
 		rm -f /var/run/dhcp6s.pid /var/lock/subsys/dhcp6s >/dev/null 2>&1
 	else
-		msg_not_running DHCP6S
+		msg_not_running "DHCPv6 server daemon"
 	fi
 }
 
