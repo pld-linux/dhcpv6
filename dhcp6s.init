@@ -30,10 +30,7 @@ else
 	exit 0
 fi
 
-RETVAL=0
-
-case "$1" in
-  start)
+start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dhcp6s ]; then
 		msg_starting "DHCP6S"
@@ -43,8 +40,9 @@ case "$1" in
 	else
 		msg_already_running DHCP6S
 	fi
-	;;
-  stop)
+}
+
+stop() {
 	if [ -f /var/lock/subsys/dhcp6s ]; then
 		msg_stopping "DHCP6S Server"
 		killproc dhcp6s
@@ -52,11 +50,19 @@ case "$1" in
 	else
 		msg_not_running DHCP6S
 	fi
+}
+
+RETVAL=0
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
 	;;
   restart|reload)
-	$0 stop
-	$0 start
-	exit $?
+	stop
+	start
 	;;
   status)
 	status dhcp6s
