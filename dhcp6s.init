@@ -53,6 +53,16 @@ stop() {
 	fi
 }
 
+condrestart() {
+	if [ -f /var/lock/subsys/dhcp6s ]; then
+		stop
+		start
+	else
+		msg_not_running "DHCPv6 server daemon"
+		RETVAL=$1
+	fi
+}
+
 RETVAL=0
 case "$1" in
   start)
@@ -61,16 +71,22 @@ case "$1" in
   stop)
   	stop
 	;;
-  restart|reload)
+  restart)
 	stop
 	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
 	;;
   status)
 	status dhcp6s
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
 	exit 3
 esac
 
