@@ -1,12 +1,10 @@
 # TODO:
-# - obsoletes when renaming a package
 # - subpackage for relay daemon
-# - use %%service
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	1.0.3
-Release:	0.9
+Release:	0.10
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
@@ -21,7 +19,9 @@ BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	libtool
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post,preun):	/sbin/chkconfig
+Requires:	rc-scripts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -46,6 +46,7 @@ Configuration Protocol for IPv6 (DHCPv6). Zawiera demona serwera DHCP
 Summary:	DHCPv6 client
 Summary(pl.UTF-8):	Klient DHCPv6
 Group:		Applications/Networking
+Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
 
 %description -n dhcpv6-client
@@ -130,16 +131,26 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add dhcp6s
+%service dhcp6s restart
+/sbin/chkconfig --add dhcp6r
+%service dhcp6r restart
 
 %preun
 if [ "$1" = "0" ]; then
-	/etc/rc.d/init.d/dhcp6s stop >/dev/null 2>&1
+	%service dhcp6s stop
 	/sbin/chkconfig --del dhcp6s
+	%service dhcp6r stop
+	/sbin/chkconfig --del dhcp6r
 fi
 
-%postun
-if [ "$1" -ge "1" ]; then
-	/etc/rc.d/init.d/dhcp6s restart >/dev/null 2>&1
+%post -n dhcpv6-client
+/sbin/chkconfig --add dhcp6c
+%service dhcp6c restart
+
+%preun -n dhcpv6-client
+if [ "$1" = "0" ]; then
+	%service dhcp6c stop
+	/sbin/chkconfig --del dhcp6c
 fi
 
 %post	-n libdhcp6client -p /sbin/ldconfig
