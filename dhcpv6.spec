@@ -4,7 +4,7 @@ Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	1.0.3
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
