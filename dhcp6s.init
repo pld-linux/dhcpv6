@@ -4,13 +4,14 @@
 #               This shell script takes care of starting and stopping
 #               dhcp6s.
 #
-# chkconfig: - 66 36
-# description: dhcp6s supports server side of  Dynamic Host Configuration
-#              Protocol for IPv6.
+# chkconfig: 345 66 34
+# description: dhcp6s supports server side of  Dynamic Host Configuration Protocol for IPv6.
 # processname: dhcp6s
 # config: /etc/dhcp6s.conf
 # config: /etc/server6_addr.conf
 # config: /etc/sysconfig/dhcp6s
+#
+# $Id$
 
 # Source function library
 . /etc/rc.d/init.d/functions

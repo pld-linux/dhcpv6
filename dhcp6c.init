@@ -4,12 +4,13 @@
 #               This shell script takes care of starting and stopping
 #               dhcp6c.
 #
-# chkconfig: - 66 36
-# description: dhcp6c supports server side of  Dynamic Host Configuration
-#              Protocol for IPv6.
+# chkconfig: 345 66 36
+# description: dhcp6c supports server side of Dynamic Host Configuration Protocol for IPv6.
 # processname: dhcp6c
 # config: /etc/dhcp6c.conf
 # config: /etc/sysconfig/dhcp6c
+#
+# $Id$
 
 # Source function library
 . /etc/rc.d/init.d/functions
