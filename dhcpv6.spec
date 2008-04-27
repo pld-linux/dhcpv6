@@ -3,17 +3,17 @@
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
-Version:	1.0.3
-Release:	2
+Version:	1.0.15
+Release:	0.1
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
 Source0:	http://dcantrel.fedorapeople.org/dhcpv6/%{name}-%{version}.tar.gz
-# Source0-md5:	7af9760efa2cb2796f75e9911c569054
+# Source0-md5:	2b0b5374cb2a0c460b62af3705cb29f7
 Source1:	dhcp6s.init
 Source2:	dhcp6c.init
 Patch0:		%{name}-configure.patch
-URL:		http://dhcpv6.sourceforge.net/
+URL:		https://fedorahosted.org/dhcpv6/
 BuildRequires:	autoconf >= 2.61
 BuildRequires:	automake
 BuildRequires:	bison
@@ -158,7 +158,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS README TODO docs/*
+%doc AUTHORS README TODO
 %attr(755,root,root) %{_sbindir}/dhcp6r
 %attr(755,root,root) %{_sbindir}/dhcp6s
 %attr(754,root,root) /etc/rc.d/init.d/dhcp6r
