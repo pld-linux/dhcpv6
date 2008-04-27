@@ -26,21 +26,15 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 Implements the Dynamic Host Configuration Protocol (DHCP) for Internet
-Protocol version 6 (IPv6) networks in accordance with RFC 3315 :
+Protocol version 6 (IPv6) networks in accordance with RFC 3315:
 Dynamic Host Configuration Protocol for IPv6 (DHCPv6). Consists of
-dhcp6s(8), the server DHCP daemon. Install this if you want to support
-dynamic configuration of IPv6 addresses and parameters on your IPv6
-network. See man dhcp6s(8), dhcp6s.conf(5), and the documentation in
-/usr/share/doc/dhcpv6* .
+dhcp6s(8), the server DHCP daemon.
 
 %description -l pl.UTF-8
 Ten pakiet jest implementacją protokołu Dynamic Host Configuration
 Protocol (DHCP) dla sieci IPv6 zgodnie z RFC 3315: Dynamic Host
 Configuration Protocol for IPv6 (DHCPv6). Zawiera demona serwera DHCP
-- dhcp6s(8). Należy zainstalować ten pakiet, jeśli potrzebujemy
-  obsługi dynamicznej konfiguracji adresów i parametrów sieci IPv6.
-  Więcej znajduje się w manualach dhcp6s(8), dhcp6s.conf(5) oraz
-  dokumentacji w /usr/share/doc/dhcpv6* .
+dhcp6s(8).
 
 %package -n dhcpv6-client
 Summary:	DHCPv6 client
@@ -51,15 +45,11 @@ Requires:	rc-scripts
 
 %description -n dhcpv6-client
 Provides the client for the DHCPv6 protocol (RFC 3315) to support
-dynamic configuration of IPv6 addresses and parameters. See man
-dhcp6c(8), dhcp6c.conf(5), and the documentation in
-/usr/share/doc/dhcpv6_client* .
+dynamic configuration of IPv6 addresses and parameters.
 
 %description -n dhcpv6-client -l pl.UTF-8
 Ten pakiet dostarcza klienta protokołu DHCPv6 (RFC 3315) do obsługi
-dynamicznej konfiguracji adresów i parametrów sieci iPv6. Więcej
-znajduje się w manualu dhcp6c(8), dhcp6c.conf(5) oraz dokumentacji w
-/usr/share/doc/dhcpv6_client*
+dynamicznej konfiguracji adresów i parametrów sieci iPv6.
 
 %package -n libdhcp6client
 Summary:	The DHCPv6 client in a library for invocation by other programs
