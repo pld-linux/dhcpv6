@@ -47,6 +47,7 @@ dynamicznej konfiguracji adresów i parametrów sieci iPv6.
 
 %package relay
 Summary:	DHCPv6 relay agent
+Summary(pl.UTF-8):	Agent przekazujący DHCPv6
 Group:		Applications/Networking
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
@@ -55,14 +56,22 @@ Requires:	rc-scripts
 dhcp6r acts as DHCPv6 relay agent forwarding DHCPv6 messages from
 clients to servers and vice versa.
 
+%description relay -l pl.UTF-8
+dhcp6r służy jako agent przekazujący komunikaty DHCPv6 od klientów do
+serwerów i z powrotem.
+
 %package server
 Summary:	DHCPv6 server daemon
+Summary(pl.UTF-8):	Demon serwera DHCPv6
 Group:		Applications/Networking
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
 
 %description server
 dhcp6s is an implementation of the DHCPv6 server.
+
+%description server -l pl.UTF-8
+dhcp6s to implementacja serwera DHCPv6.
 
 %package -n libdhcp6client
 Summary:	The DHCPv6 client in a library for invocation by other programs
