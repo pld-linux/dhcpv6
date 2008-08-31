@@ -6,7 +6,7 @@ Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
-Source0:	http://dcantrel.fedorapeople.org/dhcpv6/%{name}-%{version}.tar.gz
+Source0:	https://fedorahosted.org/releases/d/h/dhcpv6/%{name}-%{version}.tar.gz
 # Source0-md5:	2b0b5374cb2a0c460b62af3705cb29f7
 Source1:	dhcp6s.init
 Source2:	dhcp6c.init
