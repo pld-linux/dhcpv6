@@ -1,7 +1,0 @@
-Name:		libdhcp6client
-Description:	The DHCPv6 IPv6 DHCP client library
-Version:	@DHCPV6_VERSION@
-Libs:		-ldhcp6client
-Libs.private:	-lresolv -lcrypto
-Cflags:		-I/usr/include/dhcp6client
-DHCPv6.Cflags=  -I/usr/include/dhcp6client/dhcpv6
