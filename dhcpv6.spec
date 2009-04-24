@@ -1,22 +1,23 @@
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
-Version:	1.0.15
+Version:	1.2.0
 Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
 Source0:	https://fedorahosted.org/releases/d/h/dhcpv6/%{name}-%{version}.tar.gz
-# Source0-md5:	2b0b5374cb2a0c460b62af3705cb29f7
+# Source0-md5:	d537416b33002f56912b7f27477d8d35
 Source1:	dhcp6s.init
 Source2:	dhcp6c.init
-Patch0:		%{name}-configure.patch
 URL:		https://fedorahosted.org/dhcpv6/
 BuildRequires:	autoconf >= 2.61
 BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	flex
+BuildRequires:	libnl-devel >= 1.1
 BuildRequires:	libtool
+BuildRequires:	pkgconfig
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -73,49 +74,8 @@ dhcp6s is an implementation of the DHCPv6 server.
 %description server -l pl.UTF-8
 dhcp6s to implementacja serwera DHCPv6.
 
-%package -n libdhcp6client
-Summary:	The DHCPv6 client in a library for invocation by other programs
-Summary(pl.UTF-8):	Klient DHCPv6 w postaci biblioteki do wykorzystania w innych programach
-Group:		Libraries
-
-%description -n libdhcp6client
-Provides the client for the DHCPv6 protocol (RFC 3315) to support
-dynamic configuration of IPv6 addresses and parameters, in a library
-for invocation by other programs.
-
-%description -n libdhcp6client -l pl.UTF-8
-Ten pakiet zawiera klienta protokołu DHCPv6 (RFC 3315) do obsługi
-dynamicznej konfiguracji adresów i parametrów IPv6 w postaci
-biblioteki do wykorzystania w innych programach.
-
-%package -n libdhcp6client-devel
-Summary:	Header files for development with the DHCPv6 client library
-Summary(pl.UTF-8):	Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej DHCPv6
-Group:		Development/Libraries
-Requires:	libdhcp6client = %{epoch}:%{version}-%{release}
-
-%description -n libdhcp6client-devel
-Header files for development with the DHCPv6 client library.
-
-%description -n libdhcp6client-devel -l pl.UTF-8
-Pliki nagłówkowe do programowania z użyciem biblioteki klienckiej
-DHCPv6.
-
-%package -n libdhcp6client-static
-Summary:	Static DHCPv6 client library
-Summary(pl.UTF-8):	Statyczna biblioteka kliencka DHCPv6
-Group:		Development/Libraries
-Requires:	libdhcp6client-devel = %{epoch}:%{version}-%{release}
-
-%description -n libdhcp6client-static
-Static DHCPv6 client library.
-
-%description -n libdhcp6client-static -l pl.UTF-8
-Statyczna biblioteka kliencka DHCPv6.
-
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %{__libtoolize}
@@ -137,6 +97,8 @@ install -d $RPM_BUILD_ROOT{%{_localstatedir}/lib/dhcpv6,/etc/{rc.d/init.d,syscon
 
 install %{SOURCE1}	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6s
 install %{SOURCE2}	$RPM_BUILD_ROOT/etc/rc.d/init.d/dhcp6c
+
+mkdir -p $RPM_BUILD_ROOT/var/run/dhcpv6
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -171,9 +133,6 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del dhcp6s
 fi
 
-%post	-n libdhcp6client -p /sbin/ldconfig
-%postun	-n libdhcp6client -p /sbin/ldconfig
-
 %files client
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_sbindir}/dhcp6c
@@ -199,19 +158,4 @@ fi
 %{_mandir}/man8/dhcp6s.8*
 %{_mandir}/man5/dhcp6s.conf.5*
 %attr(750,root,root) %dir %{_localstatedir}/lib/dhcpv6
-
-%files -n libdhcp6client
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp6client-*.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libdhcp6client-*.so.2
-
-%files -n libdhcp6client-devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libdhcp6client.so
-%{_libdir}/libdhcp6client.la
-%{_includedir}/dhcp6client
-%{_pkgconfigdir}/libdhcp6client.pc
-
-%files -n libdhcp6client-static
-%defattr(644,root,root,755)
-%{_libdir}/libdhcp6client.a
+%attr(755,root,root) %dir %{_localstatedir}/run/dhcpv6
