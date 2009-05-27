@@ -1,8 +1,14 @@
+# TODO
+# restore compatability:
+#error: libdhcp-1.99.8-1: req libdhcp6client-1.0.so.2()(64bit) not found
+#error: nash-libs-6.0.24-4: req libdhcp6client-1.0.so.2()(64bit) not found
+#error: grubby-6.0.24-4: req libdhcp6client-1.0.so.2()(64bit) not found
+# http://cvs.pld-linux.org/cgi-bin/cvsweb.cgi/packages/dhcpv6/dhcpv6.spec.diff?r1=1.35;r2=1.36;f=h
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
 Version:	1.2.0
-Release:	2
+Release:	0.2
 Epoch:		1
 License:	GPL v2+
 Group:		Networking/Daemons
@@ -10,6 +16,7 @@ Source0:	https://fedorahosted.org/releases/d/h/dhcpv6/%{name}-%{version}.tar.gz
 # Source0-md5:	d537416b33002f56912b7f27477d8d35
 Source1:	dhcp6s.init
 Source2:	dhcp6c.init
+BuildRequires:	restore-compatability
 URL:		https://fedorahosted.org/dhcpv6/
 BuildRequires:	autoconf >= 2.61
 BuildRequires:	automake
