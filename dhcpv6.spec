@@ -1,9 +1,11 @@
-# TODO
-# restore compatability:
-#error: libdhcp-1.99.8-1: req libdhcp6client-1.0.so.2()(64bit) not found
-#error: nash-libs-6.0.24-4: req libdhcp6client-1.0.so.2()(64bit) not found
-#error: grubby-6.0.24-4: req libdhcp6client-1.0.so.2()(64bit) not found
-# http://cvs.pld-linux.org/cgi-bin/cvsweb.cgi/packages/dhcpv6/dhcpv6.spec.diff?r1=1.35;r2=1.36;f=h
+# NEWS
+#
+# IMPORTANT! Tuesday, September 22, 2009: No new development will be happening on
+# this project. dhcpv6 has been obsoleted by ISC dhcp version 4.1.0 and later.
+# Previous stable versions will receive security and bug fixes and periodic new
+# releases may be made for older distributions, but as for new development, the
+# project is shut down.
+#
 Summary:	DHCPv6 - DHCP server and client for IPv6
 Summary(pl.UTF-8):	DHCPv6 - serwer i klient DHCP dla IPv6
 Name:		dhcpv6
